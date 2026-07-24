@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>HomeQuest - 家族の家事とお小遣い</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#6750A4;        /* WarmCoral (brand purple) */
+  --mint:#386A20;           /* finished green */
+  --gold:#FFB703;           /* earned credits gold */
+  --bg:#F7F2FA;             /* soft cream lavender */
+  --text:#1D1B20;           /* dark charcoal */
+  --card:#FFFFFF;
+  --beige:#EADDFF;          /* selected container */
+  --grey:#49454F;           /* secondary labels */
+  --red:#B3261E;            /* overdue */
+  --done-bg:#F4EFF4;
+  --border-sel:#D0BCFF;
+  --border:#CAC4D0;
+  --chip-red-bg:#F9DEDC;
+  --chip-green-bg:#E2F0D9;
+  --icon-red-bg:#FFDAD6;
+  --icon-red:#410002;
+  --icon-purple:#381E72;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN','Hiragino Sans',sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;justify-content:center;
+}
+#app{
+  width:100%;max-width:560px;min-height:100dvh;
+  display:flex;flex-direction:column;background:var(--bg);
+  position:relative;
+}
+@media(min-width:600px){
+  #app{box-shadow:0 0 40px rgba(103,80,164,.12);}
+}
+button{font-family:inherit;border:none;cursor:pointer;background:none}
+input,select,textarea{font-family:inherit;font-size:14px}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px;background:var(--bg);
+  position:sticky;top:0;z-index:20;
+}
+.topbar .brand{display:flex;align-items:center;gap:10px}
+.logo-box{width:36px;height:36px;border-radius:10px;background:var(--beige);
+  display:flex;align-items:center;justify-content:center;font-size:18px}
+.brand h1{font-size:20px;font-weight:900;color:var(--primary);letter-spacing:-.5px;line-height:1.1}
+.brand .sub{font-size:10px;font-weight:500;color:var(--grey)}
+.icon-btn{width:36px;height:36px;border-radius:10px;background:var(--beige);
+  display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--primary)}
+.icon-btn:active{transform:scale(.94)}
+
+/* ---------- User switcher ---------- */
+.user-switcher{padding:2px 16px 4px}
+.user-switcher .label{font-size:11px;font-weight:700;color:var(--grey);margin-bottom:6px}
+.user-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.user-row::-webkit-scrollbar{display:none}
+.user-chip{
+  flex:0 0 auto;display:flex;align-items:center;gap:8px;
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:8px 12px;transition:background .15s,border-color .15s;
+}
+.user-chip.sel{background:var(--beige);border-color:var(--border-sel)}
+.user-chip .avatar{width:28px;height:28px;border-radius:50%;background:#F3EDF7;
+  display:flex;align-items:center;justify-content:center;font-size:16px;position:relative}
+.user-chip.sel .avatar{background:var(--border-sel)}
+.user-chip .dot{position:absolute;top:-3px;right:-3px;width:11px;height:11px;
+  background:var(--red);border-radius:50%;border:2px solid var(--card)}
+.user-chip .uname{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap}
+.user-chip .ucr{font-size:11px;font-weight:700;color:var(--grey)}
+.user-chip.sel .ucr{color:var(--primary)}
+.user-chip .checkmark{color:var(--mint);font-size:13px;font-weight:900}
+.no-members{font-size:13px;color:var(--red);padding:4px 0}
+
+/* ---------- Time banner ---------- */
+.time-banner{
+  margin:2px 16px;background:rgba(103,80,164,.08);border-radius:10px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;width:calc(100% - 32px);text-align:left;
+}
+.time-banner .t{font-size:12px;font-weight:700;color:var(--text)}
+.time-banner .go{font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap}
+.time-banner.offset-active{background:rgba(255,183,3,.18)}
+
+/* ---------- Main / tabs ---------- */
+main{flex:1;padding:8px 16px 90px;overflow-y:auto}
+.tab-page{display:none;flex-direction:column;gap:10px}
+.tab-page.active{display:flex}
+
+.filter-row{display:flex;gap:8px;padding:2px 0 4px}
+.filter-chip{
+  flex:1;padding:8px 4px;border-radius:10px;border:1px solid var(--border);
+  background:var(--card);font-size:12px;font-weight:700;color:var(--grey);
+}
+.filter-chip.sel{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;gap:8px;padding:56px 16px;text-align:center}
+.empty-state .big{font-size:52px}
+.empty-state .msg{font-weight:700;color:var(--grey);font-size:14px}
+
+/* ---------- Cards ---------- */
+.card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:14px}
+.chore-card{border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;
+  background:var(--card);border:1px solid var(--border-sel)}
+.chore-card.fresh{background:var(--done-bg);opacity:.85;border-color:rgba(202,196,208,.5)}
+.chore-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chore-title-wrap{display:flex;align-items:center;gap:8px;min-width:0}
+.chore-ic{width:36px;height:36px;border-radius:8px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;font-size:17px}
+.chore-ic.overdue{background:var(--icon-red-bg)}
+.chore-ic.fresh{background:var(--beige)}
+.chore-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chore-cycle{font-size:11px;color:var(--grey)}
+.chore-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto}
+.status-badge{font-size:10px;font-weight:700;border-radius:10px;padding:2px 7px;white-space:nowrap}
+.status-badge.overdue{background:var(--chip-red-bg);color:var(--red)}
+.status-badge.fresh{background:var(--chip-green-bg);color:var(--mint)}
+.chore-cr{font-size:14px;font-weight:800;color:var(--primary)}
+.chore-cr .star{color:var(--gold);font-size:12px}
+.gauge-row{display:flex;justify-content:space-between;align-items:center}
+.gauge-label{font-size:10px;color:var(--grey)}
+.gauge-remaining{font-size:11px;font-weight:700}
+.gauge-remaining.overdue{color:var(--red)}
+.gauge-remaining.fresh{color:var(--mint)}
+.gauge-track{height:6px;border-radius:3px;background:rgba(202,196,208,.35);overflow:hidden}
+.gauge-fill{height:100%;border-radius:3px;transition:width .4s}
+.complete-btn{
+  width:100%;height:38px;border-radius:10px;background:var(--primary);color:#fff;
+  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.complete-btn:active:not(:disabled){transform:scale(.98)}
+.complete-btn:disabled{cursor:default}
+.complete-btn.waiting{background:var(--chip-green-bg);color:var(--mint)}
+.complete-btn.nouser{background:#E0E0E0;color:#9E9E9E}
+
+/* Papa payment tasks */
+.papa-banner{background:rgba(103,80,164,.08);border:1.5px solid rgba(103,80,164,.5);
+  border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.papa-banner .head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.papa-banner .title{font-size:13px;font-weight:900;color:var(--primary)}
+.count-pill{background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:2px 6px}
+.papa-banner .desc{font-size:11px;color:var(--grey)}
+.req-card{background:var(--card);border:1px solid var(--beige);border-radius:12px;
+  padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.req-card .who{font-size:14px;font-weight:800}
+.req-card .who small{font-size:11px;font-weight:500;color:var(--grey)}
+.req-card .amt{font-size:13px;font-weight:700;color:var(--primary)}
+.req-card .yen{font-size:14px;font-weight:900;color:var(--gold)}
+.pay-btn{background:var(--mint);color:#fff;font-size:11px;font-weight:700;
+  border-radius:8px;padding:9px 12px;white-space:nowrap}
+.divider{border:none;border-top:1px solid var(--beige);margin:6px 0}
+
+/* ---------- CashOut tab ---------- */
+.wallet-card{background:linear-gradient(135deg,var(--primary),#7F67BE);color:#fff;
+  border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:4px;border:none}
+.wallet-card .wl{font-size:12px;font-weight:700;opacity:.85}
+.wallet-card .wv{font-size:34px;font-weight:900}
+.wallet-card .wv small{font-size:15px;font-weight:700}
+.wallet-card .wn{font-size:11px;opacity:.8}
+.section-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;margin-top:4px}
+.section-title .ic{width:32px;height:32px;border-radius:50%;background:var(--beige);
+  display:flex;align-items:center;justify-content:center;font-size:15px}
+.amt-presets{display:flex;gap:8px}
+.amt-presets button{flex:1;padding:10px 0;border-radius:10px;border:1px solid var(--border);
+  background:var(--card);font-weight:700;font-size:13px;color:var(--text)}
+.amt-presets button.sel{background:var(--beige);border-color:var(--border-sel);color:var(--primary)}
+.amt-input-row{display:flex;gap:8px}
+.amt-input-row input{flex:1;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--card)}
+.primary-btn{background:var(--primary);color:#fff;border-radius:10px;padding:11px 16px;
+  font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px}
+.primary-btn:disabled{background:#E0E0E0;color:#9E9E9E}
+.primary-btn:active:not(:disabled){transform:scale(.98)}
+.hint{font-size:11px;color:var(--grey)}
+.req-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px}
+.req-row.approved{background:var(--done-bg);opacity:.85}
+.req-row .info .l1{font-size:13px;font-weight:700}
+.req-row .info .l2{font-size:11px;color:var(--grey)}
+.req-actions{display:flex;gap:6px;flex:0 0 auto}
+.small-btn{font-size:11px;font-weight:700;border-radius:8px;padding:8px 10px}
+.small-btn.green{background:var(--mint);color:#fff}
+.small-btn.outline-red{background:none;border:1px solid var(--red);color:var(--red)}
+.small-btn.grey{background:var(--done-bg);color:var(--grey)}
+.approved-badge{font-size:10px;font-weight:700;color:var(--mint);background:var(--chip-green-bg);
+  border-radius:8px;padding:3px 8px;white-space:nowrap}
+
+/* ---------- History tab ---------- */
+.log-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;
+  display:flex;align-items:center;gap:10px}
+.log-row .lav{width:34px;height:34px;border-radius:50%;background:var(--beige);flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;font-size:16px}
+.log-row .lbody{flex:1;min-width:0}
+.log-row .l1{font-size:13px;font-weight:700}
+.log-row .l2{font-size:11px;color:var(--grey)}
+.log-row .lcr{font-size:13px;font-weight:800;color:var(--gold);white-space:nowrap}
+.text-btn{font-size:12px;font-weight:700;color:var(--red);padding:8px}
+.summary-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.summary-strip::-webkit-scrollbar{display:none}
+.sum-chip{flex:0 0 auto;background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:8px 12px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px}
+.sum-chip b{color:var(--primary)}
+
+/* ---------- Manage tab ---------- */
+.form-grid{display:flex;flex-direction:column;gap:8px}
+.form-grid input,.form-grid select{border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;background:var(--card);width:100%}
+.form-2col{display:flex;gap:8px}
+.form-2col>*{flex:1}
+.manage-item{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.manage-item .m1{font-size:13px;font-weight:700}
+.manage-item .m2{font-size:11px;color:var(--grey)}
+.mini-btn{font-size:11px;font-weight:700;border-radius:8px;padding:7px 10px}
+.mini-btn.purple{background:var(--beige);color:var(--primary)}
+.mini-btn.red{background:var(--chip-red-bg);color:var(--red)}
+.emoji-grid{display:flex;gap:6px;flex-wrap:wrap}
+.emoji-grid button{width:40px;height:40px;border-radius:10px;background:var(--card);
+  border:1px solid var(--border);font-size:20px}
+.emoji-grid button.sel{background:var(--beige);border-color:var(--border-sel)}
+.sync-status{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:8px;padding:10px;
+  font-size:11px;font-weight:700}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#9E9E9E;flex:0 0 auto}
+.sync-dot.on{background:#4CAF50}
+.sync-log{background:rgba(29,27,32,.05);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:3px}
+.sync-log .lt{font-size:10px;font-weight:700}
+.sync-log .li{font-size:10px;color:var(--grey);word-break:break-all}
+textarea.json-area{width:100%;height:130px;border:1px solid var(--border);border-radius:10px;
+  padding:10px;font-family:ui-monospace,monospace;font-size:11px;background:var(--card);resize:vertical}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-row .primary-btn{flex:1}
+.outline-btn{flex:1;border:1px solid var(--primary);color:var(--primary);border-radius:10px;
+  padding:11px 16px;font-weight:700;font-size:13px}
+
+/* ---------- Bottom nav ---------- */
+nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:560px;display:flex;background:#ECE6F0;
+  padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:30;
+  box-shadow:0 -2px 12px rgba(29,27,32,.06);
+}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0}
+nav .nic{font-size:18px;width:52px;height:26px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;color:rgba(73,69,79,.75)}
+nav .nlbl{font-size:10px;font-weight:700;color:rgba(73,69,79,.75)}
+nav button.sel .nic{background:rgba(202,196,208,.55);color:var(--primary)}
+nav button.sel .nlbl{color:var(--primary)}
+
+/* ---------- Dialogs ---------- */
+.overlay{position:fixed;inset:0;background:rgba(29,27,32,.45);z-index:50;
+  display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.show{display:flex}
+.dialog{background:var(--card);border-radius:24px;padding:24px;width:100%;max-width:400px;
+  display:flex;flex-direction:column;gap:14px;max-height:88dvh;overflow-y:auto}
+.dialog h3{font-size:17px;font-weight:900;color:var(--primary);text-align:center}
+.tt-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.tt-grid button{padding:12px 4px;border-radius:12px;background:var(--beige);color:var(--primary);
+  font-weight:800;font-size:13px}
+.tt-grid button:active{transform:scale(.96)}
+.offset-info{font-size:12px;color:var(--grey);text-align:center;font-weight:700}
+
+/* Celebration */
+.celebrate{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;position:relative;overflow:hidden}
+.celeb-avatar{width:100px;height:100px;border-radius:50%;background:var(--beige);
+  display:flex;align-items:center;justify-content:center;font-size:54px;
+  animation:jump .4s ease-in-out infinite alternate}
+@keyframes jump{from{transform:translateY(0) scale(1)}to{transform:translateY(-26px) scale(1.14)}}
+.coin-stage{position:relative;width:100%;height:86px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center}
+.coin-stage .cr-big{font-size:30px;font-weight:900;color:var(--gold)}
+.coin-stage .cr-sub{font-size:12px;font-weight:700;color:var(--grey)}
+.coin{position:absolute;left:50%;top:50%;font-size:18px;pointer-events:none;
+  animation:burst .9s cubic-bezier(.2,.8,.4,1) forwards}
+@keyframes burst{
+  0%{transform:translate(-50%,-50%) scale(.3);opacity:1}
+  100%{transform:translate(calc(-50% + var(--cx)),calc(-50% + var(--cy))) scale(var(--cs));opacity:0}
+}
+.celeb-msg{font-size:14px;font-weight:700;line-height:1.6}
+@media(prefers-reduced-motion:reduce){
+  .celeb-avatar{animation:none}
+  .coin{animation-duration:.01s}
+}
+.toast{
+  position:fixed;bottom:96px;left:50%;transform:translateX(-50%);
+  background:var(--text);color:#fff;font-size:12px;font-weight:700;
+  border-radius:20px;padding:10px 18px;z-index:60;opacity:0;transition:opacity .25s;
+  pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;
+}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-box">🏠</div>
+      <div>
+        <h1>HomeQuest</h1>
+        <div class="sub">家族の家事とお小遣い</div>
+      </div>
+    </div>
+    <button class="icon-btn" id="btnTimeTravel" title="時間を進める">⏰</button>
+  </header>
+
+  <!-- Active user switcher -->
+  <section class="user-switcher">
+    <div class="label">👥 操作メンバー (タップして選択)</div>
+    <div class="user-row" id="userRow"></div>
+  </section>
+
+  <!-- Virtual time banner -->
+  <button class="time-banner" id="timeBanner">
+    <span class="t" id="timeBannerText">⏰ 仮想日時: --</span>
+    <span class="go">時間を進める ➔</span>
+  </button>
+
+  <main>
+    <!-- TAB 0: 家事ボード -->
+    <div class="tab-page active" id="tab0">
+      <div class="filter-row" id="filterRow"></div>
+      <div id="papaSection"></div>
+      <div id="choreList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
+    <!-- TAB 1: お小遣い精算 -->
+    <div class="tab-page" id="tab1"></div>
+
+    <!-- TAB 2: がんばり履歴 -->
+    <div class="tab-page" id="tab2"></div>
+
+    <!-- TAB 3: 管理・設定 -->
+    <div class="tab-page" id="tab3"></div>
+  </main>
+
+  <!-- Bottom nav -->
+  <nav id="bottomNav">
+    <button data-tab="0" class="sel"><span class="nic">📋</span><span class="nlbl">家事ボード</span></button>
+    <button data-tab="1"><span class="nic">⭐</span><span class="nlbl">お小遣い精算</span></button>
+    <button data-tab="2"><span class="nic">💖</span><span class="nlbl">がんばり履歴</span></button>
+    <button data-tab="3"><span class="nic">⚙️</span><span class="nlbl">管理・設定</span></button>
+  </nav>
+
+  <!-- Time travel dialog -->
+  <div class="overlay" id="ttOverlay">
+    <div class="dialog">
+      <h3>⏰ 時間シミュレーション</h3>
+      <div class="offset-info" id="ttInfo"></div>
+      <div class="tt-grid">
+        <button data-h="1">+1時間</button>
+        <button data-h="6">+6時間</button>
+        <button data-h="12">+12時間</button>
+        <button data-h="24">+1日</button>
+        <button data-h="72">+3日</button>
+        <button data-h="168">+1週間</button>
+      </div>
+      <button class="outline-btn" id="ttReset">オフセットをリセット（現在時刻に戻す）</button>
+      <button class="primary-btn" id="ttClose">閉じる</button>
+    </div>
+  </div>
+
+  <!-- Celebration dialog -->
+  <div class="overlay" id="celebOverlay">
+    <div class="dialog celebrate" id="celebDialog"></div>
+  </div>
+
+  <!-- Edit chore dialog -->
+  <div class="overlay" id="editOverlay">
+    <div class="dialog" id="editDialog"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* =========================================================
+   Firebase (既存Androidアプリと同一のバックエンドを使用)
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyC6bfygjHkixjmv2XsB3zKJLv6arqVv7m0",
+  projectId: "homework-9484a",
+  appId: "1:938274778242:android:2ae414c0126f626195189b",
+  storageBucket: "homework-9484a.firebasestorage.app"
+};
+const DEFAULT_GROUP_ID = "homework-9484a-family";
+
+/* ---------- safe local storage ---------- */
+const mem = {};
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : v; }catch(e){ return (k in mem) ? mem[k] : d; } },
+  set(k, v){ try{ localStorage.setItem(k, v); }catch(e){ mem[k] = v; } }
+};
+
+/* ---------- app state ---------- */
+let db = null;
+let groupId = store.get("kaji_group_id", DEFAULT_GROUP_ID);
+let users = [], chores = [], choreLogs = [], cashOutRequests = [];
+let activeUserId = parseInt(store.get("kaji_active_user", ""), 10);
+if (isNaN(activeUserId)) activeUserId = null;
+let timeOffsetMillis = parseInt(store.get("kaji_time_offset", "0"), 10) || 0;
+let selectedTab = 0;
+let boardFilter = 0; // 0=全体 1=要実施 2=キレイ
+let syncActive = false;
+let syncStatus = "未接続 (ローカルのみ)";
+let syncLogs = ["自動同期は停止中"];
+let unsubs = [];
+let cashoutAmount = 100;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function now(){ return Date.now() + timeOffsetMillis; }
+function addSyncLog(msg){
+  const t = new Date();
+  const hh = String(t.getHours()).padStart(2,"0"), mm = String(t.getMinutes()).padStart(2,"0"), ss = String(t.getSeconds()).padStart(2,"0");
+  syncLogs.unshift(`[${hh}:${mm}:${ss}] ${msg}`);
+  syncLogs = syncLogs.slice(0, 20);
+  if (selectedTab === 3) renderManageTab();
+}
+function toast(msg){
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+/* ---------- domain logic (Android版 Entities.kt と同一) ---------- */
+function isOverdue(chore, t){
+  if (!chore.lastCompletedTime) return true;
+  return t - chore.lastCompletedTime >= chore.cycleHours * 3600 * 1000;
+}
+function freshnessRatio(chore, t){
+  if (!chore.lastCompletedTime) return 0;
+  const dur = chore.cycleHours * 3600 * 1000;
+  const ratio = 1 - (t - chore.lastCompletedTime) / dur;
+  return Math.min(1, Math.max(0, ratio));
+}
+function formatCycleHours(h){
+  if (h % 168 === 0 && h >= 168) return `${h/168}週間ごと`;
+  if (h % 24 === 0 && h >= 24) return `${h/24}日ごと`;
+  return `${h}時間ごと`;
+}
+function remainingText(chore, t){
+  if (!chore.lastCompletedTime) return "未完了";
+  const remain = chore.lastCompletedTime + chore.cycleHours*3600*1000 - t;
+  if (remain <= 0) return "期限超過！";
+  const totalHours = Math.floor(remain / 3600000);
+  if (totalHours < 24) return `あと ${totalHours} 時間`;
+  return `あと ${Math.floor(totalHours/24)}日`;
+}
+function fmtDateTime(ms){
+  const d = new Date(ms);
+  const wd = ["日","月","火","水","木","金","土"][d.getDay()];
+  const p = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} (${wd}) ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function relTime(ms){
+  const diff = now() - ms;
+  if (diff < 60000) return "たった今";
+  if (diff < 3600000) return `${Math.floor(diff/60000)}分前`;
+  if (diff < 86400000) return `${Math.floor(diff/3600000)}時間前`;
+  return `${Math.floor(diff/86400000)}日前`;
+}
+function nextId(list){ return list.reduce((m, x) => Math.max(m, x.id), 0) + 1; }
+function activeUser(){
+  if (!users.length) return null;
+  return users.find(u => u.id === activeUserId) || users[0];
+}
+
+/* =========================================================
+   Firestore 同期 (FirestoreSyncManager.kt と同一データ構造)
+   groups/{groupId}/{users|chores|choreLogs|cashOutRequests}/{id}
+   ========================================================= */
+function colRef(name){ return collection(db, "groups", groupId, name); }
+function docRef(name, id){ return doc(db, "groups", groupId, name, String(id)); }
+
+async function pushDoc(colName, id, data){
+  try { await setDoc(docRef(colName, id), data); }
+  catch(e){ addSyncLog(`クラウド送信エラー (${colName}): ${e.message}`); }
+}
+async function removeDoc(colName, id){
+  try { await deleteDoc(docRef(colName, id)); }
+  catch(e){ addSyncLog(`クラウド削除エラー (${colName}): ${e.message}`); }
+}
+
+function startSync(){
+  stopSync();
+  syncActive = true;
+  syncStatus = `同期中 (接続先: ${groupId})`;
+  addSyncLog(`クラウド同期を開始しました: ${groupId}`);
+
+  const listen = (name, apply, label) => {
+    const un = onSnapshot(colRef(name), snap => {
+      const list = [];
+      snap.forEach(d => {
+        const v = d.data();
+        if (v && typeof v.id === "number") list.push(v);
+      });
+      apply(list);
+      if (list.length) addSyncLog(`クラウドから${label}を ${list.length}件 同期しました`);
+      renderAll();
+    }, e => {
+      addSyncLog(`クラウド受信エラー (${label}): ${e.message}`);
+      syncStatus = "接続エラー";
+      renderAll();
+    });
+    unsubs.push(un);
+  };
+
+  listen("users", l => { users = l.sort((a,b)=>a.id-b.id); }, "ユーザー");
+  listen("chores", l => { chores = l.sort((a,b)=>a.id-b.id); }, "家事一覧");
+  listen("choreLogs", l => { choreLogs = l; }, "進捗履歴");
+  listen("cashOutRequests", l => { cashOutRequests = l.sort((a,b)=>b.timestamp-a.timestamp); }, "お小遣い申請");
+}
+function stopSync(){
+  unsubs.forEach(u => u());
+  unsubs = [];
+  if (syncActive) addSyncLog("クラウド同期を停止しました");
+  syncActive = false;
+  syncStatus = "未接続 (ローカルのみ)";
+}
+
+/* =========================================================
+   操作 (KajiRepository.kt と同一のトランザクション)
+   ========================================================= */
+async function completeChore(choreId){
+  const user = activeUser();
+  const chore = chores.find(c => c.id === choreId);
+  const t = now();
+  if (!user || !chore) return;
+  if (!isOverdue(chore, t)) return; // 二重完了防止
+
+  showCelebration(chore, user);
+
+  await pushDoc("chores", chore.id, { ...chore, lastCompletedTime: t });
+  const logId = nextId(choreLogs);
+  await pushDoc("choreLogs", logId, {
+    id: logId, choreId: chore.id, choreName: chore.name,
+    userId: user.id, userName: user.name,
+    completedTime: t, creditsEarned: chore.credits
+  });
+  await pushDoc("users", user.id, { ...user, currentCredits: user.currentCredits + chore.credits });
+}
+
+async function requestCashOut(amount){
+  const user = activeUser();
+  if (!user) return;
+  if (!(amount > 0) || user.currentCredits < amount) { toast("クレジットが足りません"); return; }
+  await pushDoc("users", user.id, { ...user, currentCredits: user.currentCredits - amount });
+  const reqId = nextId(cashOutRequests);
+  await pushDoc("cashOutRequests", reqId, {
+    id: reqId, userId: user.id, userName: user.name,
+    amount, timestamp: now(), isApproved: false
+  });
+  toast(`${amount}Cr のお小遣いをおねだりしました！📢`);
+}
+async function approveCashOut(req){
+  await pushDoc("cashOutRequests", req.id, { ...req, isApproved: true });
+  toast(`${req.userName} に ${req.amount}円 支払い完了！`);
+}
+async function cancelCashOut(req){
+  if (!req.isApproved){
+    const user = users.find(u => u.id === req.userId);
+    if (user) await pushDoc("users", user.id, { ...user, currentCredits: user.currentCredits + req.amount });
+  }
+  await removeDoc("cashOutRequests", req.id);
+}
+
+async function addChore(name, cycleHours, credits){
+  const id = nextId(chores);
+  await pushDoc("chores", id, { id, name, cycleHours, credits, lastCompletedTime: 0 });
+  toast(`家事「${name}」を追加しました`);
+}
+async function updateChore(chore){ await pushDoc("chores", chore.id, chore); }
+async function deleteChore(chore){
+  if (!confirm(`家事「${chore.name}」を削除しますか？`)) return;
+  chores = chores.filter(c => c.id !== chore.id);
+  await removeDoc("chores", chore.id);
+  renderAll();
+}
+async function addMember(name, emoji){
+  const id = nextId(users);
+  await pushDoc("users", id, { id, name, avatarEmoji: emoji, currentCredits: 0 });
+  toast(`メンバー「${name}」を追加しました`);
+}
+async function deleteMember(user){
+  if (!confirm(`メンバー「${user.name}」を削除しますか？（保有クレジットも消えます）`)) return;
+  users = users.filter(u => u.id !== user.id);
+  if (activeUserId === user.id) activeUserId = null;
+  await removeDoc("users", user.id);
+  renderAll();
+}
+async function clearHistory(){
+  if (!confirm("がんばり履歴をすべて削除しますか？")) return;
+  const targets = [...choreLogs];
+  choreLogs = [];
+  renderAll();
+  for (const l of targets) await removeDoc("choreLogs", l.id);
+  toast("履歴をクリアしました");
+}
+
+/* ---------- 初期データ投入 (Androidアプリと同一シード) ---------- */
+async function seedDefaults(){
+  if (users.length || chores.length){ toast("すでにデータがあります"); return; }
+  const t = Date.now();
+  const seedUsers = [
+    ["パパ","👨",500], ["ママ","👩",800], ["たろう","👦",200], ["はなこ","👧",150]
+  ];
+  let uid = 0;
+  for (const [name, emoji, cr] of seedUsers){
+    uid++;
+    await pushDoc("users", uid, { id: uid, name, avatarEmoji: emoji, currentCredits: cr });
+  }
+  const H = 3600*1000;
+  const seedChores = [
+    ["リビング床",24,100,t-6*H],["廊下",48,100,t-40*H],["マットコロコロ",24,50,t-25*H],
+    ["マット洗濯",168,300,t-24*H],["シンク掃除",24,150,t-12*H],["キッチン排水",72,200,t-80*H],
+    ["風呂掃除",24,200,t-2*H],["風呂排水",48,150,t-10*H],["洗面台",24,100,t-23*H],
+    ["洗面台排水",72,150,t-120*H],["トイレ掃除",48,250,t-49*H],["皿洗い",24,100,t-3*H],
+    ["買い出し",72,300,t-96*H],["燃えるゴミ",72,100,t-12*H],["燃えないゴミ",336,150,t-120*H],
+    ["ビン・缶のゴミ",168,150,t-240*H],["プラスチックゴミ",72,100,t-12*H],["段ボールゴミ",168,150,t-48*H]
+  ];
+  let cid = 0;
+  for (const [name, cycleHours, credits, last] of seedChores){
+    cid++;
+    await pushDoc("chores", cid, { id: cid, name, cycleHours, credits, lastCompletedTime: last });
+  }
+  toast("初期データを投入しました 🎉");
+}
+
+/* ---------- JSONバックアップ (KajiViewModel と互換フォーマット) ---------- */
+function exportJson(){
+  return JSON.stringify({ users, chores, choreLogs, cashOutRequests }, null, 2);
+}
+async function importJson(text){
+  let root;
+  try { root = JSON.parse(text); } catch(e){ return false; }
+  try {
+    for (const u of root.users || []) await pushDoc("users", u.id, {
+      id: u.id|0, name: String(u.name), avatarEmoji: String(u.avatarEmoji), currentCredits: u.currentCredits|0 });
+    for (const c of root.chores || []) await pushDoc("chores", c.id, {
+      id: c.id|0, name: String(c.name), cycleHours: c.cycleHours|0, credits: c.credits|0,
+      lastCompletedTime: Number(c.lastCompletedTime) || 0 });
+    for (const l of root.choreLogs || []) await pushDoc("choreLogs", l.id, {
+      id: l.id|0, choreId: l.choreId|0, choreName: String(l.choreName),
+      userId: l.userId|0, userName: String(l.userName),
+      completedTime: Number(l.completedTime) || 0, creditsEarned: l.creditsEarned|0 });
+    for (const r of root.cashOutRequests || []) await pushDoc("cashOutRequests", r.id, {
+      id: r.id|0, userId: r.userId|0, userName: String(r.userName), amount: r.amount|0,
+      timestamp: Number(r.timestamp) || 0, isApproved: !!r.isApproved });
+    return true;
+  } catch(e){ return false; }
+}
+
+/* =========================================================
+   レンダリング
+   ========================================================= */
+function renderAll(){
+  renderUserSwitcher();
+  renderTimeBanner();
+  if (selectedTab === 0) renderBoardTab();
+  else if (selectedTab === 1) renderCashOutTab();
+  else if (selectedTab === 2) renderHistoryTab();
+  else renderManageTab();
+}
+
+function renderUserSwitcher(){
+  const row = $("userRow");
+  if (!users.length){
+    row.innerHTML = '<div class="no-members">メンバーがいません。設定画面で追加してください。</div>';
+    return;
+  }
+  const act = activeUser();
+  row.innerHTML = users.map(u => {
+    const sel = act && act.id === u.id;
+    const pending = u.name === "パパ" ? cashOutRequests.filter(r => !r.isApproved).length : 0;
+    return `<button class="user-chip${sel?" sel":""}" data-uid="${u.id}">
+      <span class="avatar">${esc(u.avatarEmoji)}${pending>0?'<span class="dot"></span>':''}</span>
+      <span>
+        <span class="uname">${esc(u.name)}${pending>0?" 📢":""}</span><br>
+        <span class="ucr">${u.currentCredits} Cr</span>
+      </span>
+      ${sel?'<span class="checkmark">✓</span>':''}
+    </button>`;
+  }).join("");
+  row.querySelectorAll(".user-chip").forEach(b => b.addEventListener("click", () => {
+    activeUserId = parseInt(b.dataset.uid, 10);
+    store.set("kaji_active_user", String(activeUserId));
+    renderAll();
+  }));
+}
+
+function renderTimeBanner(){
+  $("timeBannerText").textContent = `⏰ 仮想日時: ${fmtDateTime(now())}`;
+  $("timeBanner").classList.toggle("offset-active", timeOffsetMillis !== 0);
+}
+
+/* ---------- TAB 0: 家事ボード ---------- */
+function renderBoardTab(){
+  const t = now();
+  const act = activeUser();
+
+  // filter chips
+  const labels = [`全体 (${chores.length})`, "要実施 🚨", "キレイ 🟢"];
+  $("filterRow").innerHTML = labels.map((l,i) =>
+    `<button class="filter-chip${boardFilter===i?" sel":""}" data-f="${i}">${l}</button>`).join("");
+  $("filterRow").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    boardFilter = parseInt(b.dataset.f, 10); renderBoardTab();
+  }));
+
+  // パパ専用支払いタスク
+  const papaEl = $("papaSection");
+  const pending = (act && act.name === "パパ" && boardFilter !== 2)
+    ? cashOutRequests.filter(r => !r.isApproved) : [];
+  if (pending.length){
+    papaEl.innerHTML = `
+      <div class="papa-banner">
+        <div class="head">
+          <span class="title">👨 パパ専用お小遣い支払いタスク</span>
+          <span class="count-pill">未完了: ${pending.length}件</span>
+        </div>
+        <div class="desc">お小遣い申請を完了（支払完了）するにはボタンをタップしてください。</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px" id="papaReqs"></div>
+      <hr class="divider">`;
+    const wrap = papaEl.querySelector("#papaReqs");
+    wrap.innerHTML = pending.map(r => `
+      <div class="req-card">
+        <div>
+          <div class="who">${esc(r.userName)} <small>からのお小遣い申請</small></div>
+          <div><span class="amt">${r.amount}c</span> <small style="color:var(--grey);font-size:11px">➔ お小遣い</small> <span class="yen">【 ${r.amount}円 】</span></div>
+        </div>
+        <button class="pay-btn" data-rid="${r.id}">払った！(完了)</button>
+      </div>`).join("");
+    wrap.querySelectorAll(".pay-btn").forEach(b => b.addEventListener("click", () => {
+      const req = cashOutRequests.find(r => r.id === parseInt(b.dataset.rid, 10));
+      if (req) approveCashOut(req);
+    }));
+  } else papaEl.innerHTML = "";
+
+  // chore list
+  const filtered = chores.filter(c => {
+    const od = isOverdue(c, t);
+    return boardFilter === 1 ? od : boardFilter === 2 ? !od : true;
+  });
+  const list = $("choreList");
+  if (!filtered.length && !pending.length){
+    list.innerHTML = `<div class="empty-state">
+      <div class="big">${chores.length ? "✅" : "🧹"}</div>
+      <div class="msg">${boardFilter===1 ? "お見事！すべての家事がピカピカです！✨" :
+        chores.length ? "該当する家事がありません。" : "家事がまだ登録されていません。<br>管理・設定タブから追加してください。"}</div>
+    </div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(c => {
+    const od = isOverdue(c, t);
+    const fresh = freshnessRatio(c, t);
+    const pColor = od ? "var(--red)" : fresh < .25 ? "var(--gold)" : "var(--mint)";
+    const btnClass = !act ? "nouser" : od ? "" : "waiting";
+    const btnText = !act ? "操作メンバーを選択してください"
+      : od ? `【${esc(act.name)}】が「完了」する` : "完了済み（次の周期まで待機）";
+    return `<div class="chore-card${od?"":" fresh"}">
+      <div class="chore-head">
+        <div class="chore-title-wrap">
+          <div class="chore-ic ${od?"overdue":"fresh"}">${od?"⚠️":"✅"}</div>
+          <div style="min-width:0">
+            <div class="chore-name">${esc(c.name)}</div>
+            <div class="chore-cycle">周期: ${formatCycleHours(c.cycleHours)}</div>
+          </div>
+        </div>
+        <div class="chore-right">
+          <span class="status-badge ${od?"overdue":"fresh"}">${od?"要実施 🚨":"ピカピカ 🟢"}</span>
+          <span class="chore-cr"><span class="star">⭐</span> +${c.credits}Cr</span>
+        </div>
+      </div>
+      <div>
+        <div class="gauge-row">
+          <span class="gauge-label">${od?"※ 時間が経過して未完了になりました":"状態ゲージ（新鮮さ）"}</span>
+          <span class="gauge-remaining ${od?"overdue":"fresh"}">${remainingText(c, t)}</span>
+        </div>
+        <div class="gauge-track"><div class="gauge-fill" style="width:${(c.lastCompletedTime?fresh*100:0).toFixed(1)}%;background:${pColor}"></div></div>
+      </div>
+      <button class="complete-btn ${btnClass}" data-cid="${c.id}" ${(!act || !od)?"disabled":""}>
+        ${od?"🔄":"✔"} ${btnText}
+      </button>
+    </div>`;
+  }).join("");
+  list.querySelectorAll(".complete-btn").forEach(b => b.addEventListener("click", () => {
+    completeChore(parseInt(b.dataset.cid, 10));
+  }));
+}
+
+/* ---------- TAB 1: お小遣い精算 ---------- */
+function renderCashOutTab(){
+  const act = activeUser();
+  const el = $("tab1");
+  if (!act){
+    el.innerHTML = '<div class="empty-state"><div class="big">👥</div><div class="msg">操作メンバーを選択してください。</div></div>';
+    return;
+  }
+  const myPending = cashOutRequests.filter(r => r.userId === act.id && !r.isApproved);
+  const allSorted = [...cashOutRequests].sort((a,b) => b.timestamp - a.timestamp);
+  el.innerHTML = `
+    <div class="wallet-card">
+      <div class="wl">${esc(act.avatarEmoji)} ${esc(act.name)} のおさいふ</div>
+      <div class="wv">${act.currentCredits}<small> Cr</small></div>
+      <div class="wn">1 Cr = 1円で精算できます（申請時にクレジットを消費します）</div>
+    </div>
+
+    <div class="section-title"><span class="ic">📢</span>お小遣いをおねだりする</div>
+    <div class="amt-presets" id="amtPresets">
+      ${[100,300,500,1000].map(a => `<button data-a="${a}" class="${cashoutAmount===a?"sel":""}">${a}</button>`).join("")}
+    </div>
+    <div class="amt-input-row">
+      <input type="number" id="amtInput" min="1" step="1" value="${cashoutAmount}" inputmode="numeric">
+      <button class="primary-btn" id="btnRequest" ${act.currentCredits < 1 ? "disabled" : ""}>📢 おねだり申請</button>
+    </div>
+    <div class="hint">申請するとクレジットが差し引かれ、パパの「支払いタスク」に追加されます。取り消すと返金されます。</div>
+
+    <div class="section-title"><span class="ic">📋</span>申請リスト</div>
+    <div id="reqList" style="display:flex;flex-direction:column;gap:8px"></div>
+  `;
+  el.querySelectorAll("#amtPresets button").forEach(b => b.addEventListener("click", () => {
+    cashoutAmount = parseInt(b.dataset.a, 10);
+    renderCashOutTab();
+  }));
+  $("amtInput").addEventListener("input", e => {
+    cashoutAmount = parseInt(e.target.value, 10) || 0;
+    el.querySelectorAll("#amtPresets button").forEach(b =>
+      b.classList.toggle("sel", parseInt(b.dataset.a,10) === cashoutAmount));
+  });
+  $("btnRequest").addEventListener("click", () => requestCashOut(cashoutAmount));
+
+  const rl = el.querySelector("#reqList");
+  if (!allSorted.length){
+    rl.innerHTML = '<div class="hint" style="text-align:center;padding:16px">まだ申請はありません。</div>';
+  } else {
+    rl.innerHTML = allSorted.map(r => {
+      const mine = r.userId === act.id;
+      const isPapa = act.name === "パパ";
+      let actions = "";
+      if (r.isApproved){
+        actions = '<span class="approved-badge">✅ 支払済み</span>';
+      } else {
+        const btns = [];
+        if (isPapa) btns.push(`<button class="small-btn green" data-act="approve" data-rid="${r.id}">払った！</button>`);
+        if (mine || isPapa) btns.push(`<button class="small-btn outline-red" data-act="cancel" data-rid="${r.id}">${mine?"取り消す":"却下"}</button>`);
+        actions = btns.join("") || '<span class="approved-badge" style="background:var(--chip-red-bg);color:var(--red)">⏳ 支払い待ち</span>';
+      }
+      return `<div class="req-row${r.isApproved?" approved":""}">
+        <div class="info">
+          <div class="l1">${esc(r.userName)} — ${r.amount}Cr ➔ ${r.amount}円</div>
+          <div class="l2">${fmtDateTime(r.timestamp)}${r.isApproved?"":" ・ 支払い待ち"}</div>
+        </div>
+        <div class="req-actions">${actions}</div>
+      </div>`;
+    }).join("");
+    rl.querySelectorAll("button[data-act]").forEach(b => b.addEventListener("click", () => {
+      const req = cashOutRequests.find(r => r.id === parseInt(b.dataset.rid, 10));
+      if (!req) return;
+      if (b.dataset.act === "approve") approveCashOut(req);
+      else {
+        if (confirm(`${req.userName} の ${req.amount}Cr の申請を取り消しますか？（クレジットは返金されます）`)) cancelCashOut(req);
+      }
+    }));
+  }
+  void myPending;
+}
+
+/* ---------- TAB 2: がんばり履歴 ---------- */
+function renderHistoryTab(){
+  const el = $("tab2");
+  const sorted = [...choreLogs].sort((a,b) => b.completedTime - a.completedTime);
+
+  // 集計 (メンバー別合計)
+  const sums = {};
+  for (const l of choreLogs){
+    sums[l.userName] = (sums[l.userName] || 0) + l.creditsEarned;
+  }
+  const ranking = Object.entries(sums).sort((a,b) => b[1]-a[1]);
+
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="section-title" style="margin:0"><span class="ic">💖</span>がんばり履歴 (${choreLogs.length}件)</div>
+      ${choreLogs.length ? '<button class="text-btn" id="btnClearLogs">履歴をクリア</button>' : ""}
+    </div>
+    ${ranking.length ? `<div class="summary-strip">${ranking.map(([name, cr], i) =>
+      `<span class="sum-chip">${["🥇","🥈","🥉"][i] || "🎖"} ${esc(name)} <b>${cr}Cr</b></span>`).join("")}</div>` : ""}
+    <div id="logList" style="display:flex;flex-direction:column;gap:8px"></div>
+  `;
+  const ll = el.querySelector("#logList");
+  if (!sorted.length){
+    ll.innerHTML = `<div class="empty-state"><div class="big">🌱</div>
+      <div class="msg">まだ履歴がありません。<br>家事を完了するとここに記録されます！</div></div>`;
+  } else {
+    ll.innerHTML = sorted.map(l => {
+      const u = users.find(x => x.id === l.userId);
+      return `<div class="log-row">
+        <div class="lav">${esc(u ? u.avatarEmoji : "🙂")}</div>
+        <div class="lbody">
+          <div class="l1">${esc(l.userName)} が「${esc(l.choreName)}」を完了</div>
+          <div class="l2">${fmtDateTime(l.completedTime)} ・ ${relTime(l.completedTime)}</div>
+        </div>
+        <div class="lcr">+${l.creditsEarned}Cr</div>
+      </div>`;
+    }).join("");
+  }
+  const cb = el.querySelector("#btnClearLogs");
+  if (cb) cb.addEventListener("click", clearHistory);
+}
+
+/* ---------- TAB 3: 管理・設定 ---------- */
+const EMOJIS = ["👨","👩","👦","👧","👶","👴","👵","🐶","🐱","🐰","🦊","🐻"];
+let newMemberEmoji = "👦";
+
+function renderManageTab(){
+  const el = $("tab3");
+  const focused = document.activeElement;
+  const focusId = focused && el.contains(focused) ? focused.id : null;
+  const keep = {};
+  ["mcName","mcCycle","mcCredits","mmName","importArea","groupIdInput"].forEach(id => {
+    const n = $(id); if (n) keep[id] = n.value;
+  });
+
+  el.innerHTML = `
+    <div class="section-title"><span class="ic">🧹</span>家事の管理</div>
+    <div class="card form-grid">
+      <input id="mcName" placeholder="家事の名前（例: トイレ掃除）">
+      <div class="form-2col">
+        <select id="mcCycle">
+          ${[[6,"6時間ごと"],[12,"12時間ごと"],[24,"1日ごと"],[48,"2日ごと"],[72,"3日ごと"],[168,"1週間ごと"],[336,"2週間ごと"],[720,"1ヶ月ごと"]]
+            .map(([v,l]) => `<option value="${v}"${v===24?" selected":""}>${l}</option>`).join("")}
+        </select>
+        <input id="mcCredits" type="number" min="1" step="10" placeholder="クレジット" value="100" inputmode="numeric">
+      </div>
+      <button class="primary-btn" id="btnAddChore">＋ 家事を追加する</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${chores.map(c => `<div class="manage-item">
+        <div><div class="m1">${esc(c.name)}</div><div class="m2">周期: ${formatCycleHours(c.cycleHours)} ・ +${c.credits}Cr</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="mini-btn purple" data-edit="${c.id}">編集</button>
+          <button class="mini-btn red" data-delc="${c.id}">削除</button>
+        </div>
+      </div>`).join("") || '<div class="hint" style="text-align:center;padding:8px">家事はまだありません。</div>'}
+    </div>
+
+    <div class="section-title"><span class="ic">👥</span>メンバー管理</div>
+    <div class="card form-grid">
+      <input id="mmName" placeholder="メンバーの名前">
+      <div class="emoji-grid" id="emojiGrid">
+        ${EMOJIS.map(e => `<button data-e="${e}" class="${e===newMemberEmoji?"sel":""}">${e}</button>`).join("")}
+      </div>
+      <button class="primary-btn" id="btnAddMember">＋ メンバーを追加する</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${users.map(u => `<div class="manage-item">
+        <div><div class="m1">${esc(u.avatarEmoji)} ${esc(u.name)}</div><div class="m2">保有: ${u.currentCredits} Cr</div></div>
+        <button class="mini-btn red" data-delu="${u.id}">削除</button>
+      </div>`).join("") || '<div class="hint" style="text-align:center;padding:8px">メンバーはまだいません。</div>'}
+    </div>
+
+    <div class="section-title"><span class="ic">🔄</span>クラウド自動同期機能 (Firestore)</div>
+    <div class="card form-grid">
+      <div class="hint">複数の端末で同じお小遣いデータや家事の状況を自動でリアルタイムに同期・共有しています。<br>※ ページを開くとバックグラウンドで自動的に接続されます。</div>
+      <div class="sync-status"><span class="sync-dot${syncActive?" on":""}"></span>ステータス: ${esc(syncStatus)}</div>
+      <div class="sync-log">
+        <span class="lt">⚡ 同期ログ (最新5件):</span>
+        ${syncLogs.slice(0,5).map(l => `<span class="li">• ${esc(l)}</span>`).join("") || '<span class="li">• まだ同期ログはありません</span>'}
+      </div>
+      <div class="form-2col">
+        <input id="groupIdInput" placeholder="グループID" value="${esc(groupId)}">
+        <button class="outline-btn" id="btnApplyGroup" style="flex:0 0 auto">接続先変更</button>
+      </div>
+      ${(!users.length && !chores.length) ? '<button class="primary-btn" id="btnSeed">🌱 初期データを投入する（サンプル家族＆家事）</button>' : ""}
+    </div>
+
+    <div class="section-title"><span class="ic">📤</span>手動データ同期 & バックアップ</div>
+    <div class="card form-grid">
+      <div class="hint">コードのコピー＆ペーストによる安全な手動データ移行です。家族間でデータを引っ越すのにも役立ちます。</div>
+      <div class="btn-row">
+        <button class="primary-btn" id="btnExport">📋 エクスポート（コピー）</button>
+        <button class="outline-btn" id="btnDownload">💾 ファイル保存</button>
+      </div>
+      <textarea class="json-area" id="importArea" placeholder="ここにエクスポートしたJSONを貼り付けてインポート"></textarea>
+      <button class="outline-btn" id="btnImport">📥 インポートする</button>
+    </div>
+
+    <div class="section-title"><span class="ic">⏰</span>時間シミュレーション</div>
+    <div class="card form-grid">
+      <div class="hint">現在のオフセット: <b>${timeOffsetMillis === 0 ? "なし（実時間）" : "+" + Math.round(timeOffsetMillis/3600000) + "時間"}</b>（この端末のみ・共有されません）</div>
+      <button class="outline-btn" id="btnOpenTT">時間を進めるパネルを開く</button>
+    </div>
+  `;
+
+  Object.entries(keep).forEach(([id, v]) => { const n = $(id); if (n && id !== "groupIdInput") n.value = v; });
+  if (focusId && $(focusId)) $(focusId).focus();
+
+  $("btnAddChore").addEventListener("click", () => {
+    const name = $("mcName").value.trim();
+    const cycle = parseInt($("mcCycle").value, 10);
+    const credits = parseInt($("mcCredits").value, 10);
+    if (!name){ toast("家事の名前を入力してください"); return; }
+    if (!(credits > 0)){ toast("クレジットは1以上にしてください"); return; }
+    addChore(name, cycle, credits);
+    $("mcName").value = "";
+  });
+  el.querySelectorAll("[data-delc]").forEach(b => b.addEventListener("click", () => {
+    const c = chores.find(x => x.id === parseInt(b.dataset.delc, 10));
+    if (c) deleteChore(c);
+  }));
+  el.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => {
+    const c = chores.find(x => x.id === parseInt(b.dataset.edit, 10));
+    if (c) openEditChore(c);
+  }));
+  el.querySelectorAll("#emojiGrid button").forEach(b => b.addEventListener("click", () => {
+    newMemberEmoji = b.dataset.e;
+    el.querySelectorAll("#emojiGrid button").forEach(x => x.classList.toggle("sel", x.dataset.e === newMemberEmoji));
+  }));
+  $("btnAddMember").addEventListener("click", () => {
+    const name = $("mmName").value.trim();
+    if (!name){ toast("メンバーの名前を入力してください"); return; }
+    addMember(name, newMemberEmoji);
+    $("mmName").value = "";
+  });
+  el.querySelectorAll("[data-delu]").forEach(b => b.addEventListener("click", () => {
+    const u = users.find(x => x.id === parseInt(b.dataset.delu, 10));
+    if (u) deleteMember(u);
+  }));
+  $("btnApplyGroup").addEventListener("click", () => {
+    const g = $("groupIdInput").value.trim();
+    if (!g) return;
+    groupId = g;
+    store.set("kaji_group_id", g);
+    users = []; chores = []; choreLogs = []; cashOutRequests = [];
+    startSync();
+    toast(`接続先を「${g}」に変更しました`);
+    renderAll();
+  });
+  const seedBtn = $("btnSeed");
+  if (seedBtn) seedBtn.addEventListener("click", seedDefaults);
+  $("btnExport").addEventListener("click", async () => {
+    const json = exportJson();
+    $("importArea").value = json;
+    try { await navigator.clipboard.writeText(json); toast("JSONをコピーしました"); }
+    catch(e){ toast("下の欄に表示しました（手動でコピーしてください）"); }
+  });
+  $("btnDownload").addEventListener("click", () => {
+    const blob = new Blob([exportJson()], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `homequest-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  $("btnImport").addEventListener("click", async () => {
+    const text = $("importArea").value.trim();
+    if (!text){ toast("JSONを貼り付けてください"); return; }
+    if (!confirm("インポートするとクラウド上のデータが上書き・追加されます。よろしいですか？")) return;
+    const ok = await importJson(text);
+    toast(ok ? "インポートが完了しました 🎉" : "インポートに失敗しました（JSON形式を確認してください）");
+  });
+  $("btnOpenTT").addEventListener("click", openTimeTravel);
+}
+
+/* ---------- 家事編集ダイアログ ---------- */
+function openEditChore(chore){
+  const ov = $("editOverlay");
+  $("editDialog").innerHTML = `
+    <h3>✏️ 家事を編集</h3>
+    <div class="form-grid">
+      <input id="ecName" value="${esc(chore.name)}">
+      <div class="form-2col">
+        <select id="ecCycle">
+          ${[[6,"6時間ごと"],[12,"12時間ごと"],[24,"1日ごと"],[48,"2日ごと"],[72,"3日ごと"],[168,"1週間ごと"],[336,"2週間ごと"],[720,"1ヶ月ごと"]]
+            .map(([v,l]) => `<option value="${v}"${v===chore.cycleHours?" selected":""}>${l}</option>`).join("")}
+          ${[6,12,24,48,72,168,336,720].includes(chore.cycleHours) ? "" :
+            `<option value="${chore.cycleHours}" selected>${formatCycleHours(chore.cycleHours)}</option>`}
+        </select>
+        <input id="ecCredits" type="number" min="1" value="${chore.credits}" inputmode="numeric">
+      </div>
+      <button class="primary-btn" id="ecSave">保存する</button>
+      <button class="outline-btn" id="ecCancel">キャンセル</button>
+    </div>`;
+  ov.classList.add("show");
+  $("ecSave").addEventListener("click", () => {
+    const name = $("ecName").value.trim();
+    const credits = parseInt($("ecCredits").value, 10);
+    if (!name || !(credits > 0)){ toast("入力内容を確認してください"); return; }
+    updateChore({ ...chore, name, cycleHours: parseInt($("ecCycle").value, 10), credits });
+    ov.classList.remove("show");
+    toast("家事を更新しました");
+  });
+  $("ecCancel").addEventListener("click", () => ov.classList.remove("show"));
+}
+
+/* ---------- お祝い演出 ---------- */
+function showCelebration(chore, user){
+  const ov = $("celebOverlay");
+  const dlg = $("celebDialog");
+  const angles = [15,45,75,105,135,195,225,255,285,315];
+  const coins = angles.map((a,i) => {
+    const rad = a * Math.PI / 180;
+    const dist = 70 + (i % 3) * 22;
+    const cx = (Math.cos(rad) * dist).toFixed(0);
+    const cy = (Math.sin(rad) * dist - 40).toFixed(0);
+    const cs = (1 + (i % 2) * .4).toFixed(1);
+    return `<span class="coin" style="--cx:${cx}px;--cy:${cy}px;--cs:${cs};animation-delay:${(i*30)}ms">🪙</span>`;
+  }).join("");
+  dlg.innerHTML = `
+    <h3>🎉 タスク完了！ 🎉</h3>
+    <div class="celeb-avatar">${esc(user.avatarEmoji)}</div>
+    <div class="coin-stage">
+      ${coins}
+      <div class="cr-big">+${chore.credits} Cr</div>
+      <div class="cr-sub">コイン獲得！</div>
+    </div>
+    <div class="celeb-msg">【${esc(user.name)}】が<br>『${esc(chore.name)}』を完了マークしたよ！</div>
+    <button class="primary-btn" id="celebClose" style="width:100%">やったね！閉じる</button>
+  `;
+  ov.classList.add("show");
+  $("celebClose").addEventListener("click", () => ov.classList.remove("show"));
+  clearTimeout(ov._t);
+  ov._t = setTimeout(() => ov.classList.remove("show"), 4000);
+}
+
+/* ---------- タイムトラベル ---------- */
+function openTimeTravel(){
+  updateTTInfo();
+  $("ttOverlay").classList.add("show");
+}
+function updateTTInfo(){
+  $("ttInfo").innerHTML = `現在の仮想日時: ${fmtDateTime(now())}<br>オフセット: ${
+    timeOffsetMillis === 0 ? "なし" : "+" + Math.round(timeOffsetMillis/3600000) + "時間"}（この端末のみ）`;
+}
+function setOffset(ms){
+  timeOffsetMillis = ms;
+  store.set("kaji_time_offset", String(ms));
+  updateTTInfo();
+  renderTimeBanner();
+  if (selectedTab === 0) renderBoardTab();
+  if (selectedTab === 3) renderManageTab();
+}
+$("ttOverlay").querySelectorAll(".tt-grid button").forEach(b =>
+  b.addEventListener("click", () => setOffset(timeOffsetMillis + parseInt(b.dataset.h, 10) * 3600000)));
+$("ttReset").addEventListener("click", () => { setOffset(0); toast("時間オフセットをリセットしました"); });
+$("ttClose").addEventListener("click", () => $("ttOverlay").classList.remove("show"));
+$("btnTimeTravel").addEventListener("click", openTimeTravel);
+$("timeBanner").addEventListener("click", openTimeTravel);
+
+/* ---------- タブ切り替え ---------- */
+$("bottomNav").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+  selectedTab = parseInt(b.dataset.tab, 10);
+  $("bottomNav").querySelectorAll("button").forEach(x =>
+    x.classList.toggle("sel", x === b));
+  document.querySelectorAll(".tab-page").forEach((p,i) =>
+    p.classList.toggle("active", i === selectedTab));
+  renderAll();
+}));
+
+/* ---------- overlays: 背景タップで閉じる ---------- */
+["ttOverlay","celebOverlay","editOverlay"].forEach(id => {
+  $(id).addEventListener("click", e => { if (e.target === $(id)) $(id).classList.remove("show"); });
+});
+
+/* ---------- 毎秒の時刻更新（家事ボードの鮮度反映） ---------- */
+setInterval(() => {
+  renderTimeBanner();
+  if (selectedTab === 0) renderBoardTab();
+}, 1000);
+
+/* ---------- 起動 ---------- */
+try {
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  addSyncLog(`Firebaseに接続しました (Project: ${firebaseConfig.projectId})`);
+  startSync();
+} catch(e) {
+  syncStatus = "Firebase初期化失敗";
+  addSyncLog(`Firebase初期化失敗: ${e.message}`);
+}
+renderAll();
+</script>
+</body>
+</html>
