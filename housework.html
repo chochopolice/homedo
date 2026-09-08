@@ -345,6 +345,7 @@ nav button.sel .nlbl{color:var(--primary)}
 
   <div class="overlay" id="celebOverlay"><div class="dialog celebrate" id="celebDialog"></div></div>
   <div class="overlay" id="editOverlay"><div class="dialog" id="editDialog"></div></div>
+  <div class="overlay" id="authOverlay"><div class="dialog" id="authDialog"></div></div>
   <div class="toast" id="toast"></div>
 </div>
 
@@ -352,11 +353,13 @@ nav button.sel .nlbl{color:var(--primary)}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInAnonymously, signOut,
-  GoogleAuthProvider, signInWithPopup, linkWithPopup
+  GoogleAuthProvider, signInWithPopup, linkWithPopup,
+  EmailAuthProvider, linkWithCredential, sendPasswordResetEmail,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-  collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
+  collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, deleteField,
   onSnapshot, query, orderBy, limit, writeBatch, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -429,6 +432,14 @@ function friendlyError(e){
   if (c === "auth/popup-blocked") return "ポップアップがブロックされました。ブラウザの設定を確認してください。";
   if (c === "auth/popup-closed-by-user") return "ログインがキャンセルされました。";
   if (c === "auth/unauthorized-domain") return "このドメインは未承認です。Firebaseコンソールの承認済みドメインに追加してください。";
+  if (c === "auth/invalid-email") return "メールアドレスの形式が正しくありません。";
+  if (c === "auth/missing-password") return "パスワードを入力してください。";
+  if (c === "auth/weak-password") return "パスワードは6文字以上にしてください。";
+  if (c === "auth/email-already-in-use") return "このメールアドレスは既に登録されています。ログインをお試しください。";
+  if (c === "auth/user-not-found" || c === "auth/wrong-password" || c === "auth/invalid-credential")
+    return "メールアドレスまたはパスワードが違います。";
+  if (c === "auth/too-many-requests") return "試行回数が多すぎます。しばらく待ってからお試しください。";
+  if (c === "auth/operation-not-allowed") return "このログイン方法は現在無効です。管理者にご連絡ください。";
   return (e && e.message) || "不明なエラーが発生しました。";
 }
 
@@ -493,6 +504,110 @@ function gateError(msg, retryLabel, retryFn){
   $("gateRetry").addEventListener("click", retryFn || (() => location.reload()));
 }
 
+/* アカウントに世帯を紐づけて記録する。
+   端末のlocalStorageが消えても、ログインすれば所属世帯を思い出せる。 */
+async function rememberGroup(gid, name){
+  try { await setDoc(doc(db, "userGroups", uid), { groups: { [gid]: name || "" } }, { merge: true }); }
+  catch(e){ /* 記録に失敗しても本体の動作は続ける */ }
+}
+async function forgetGroup(gid){
+  try { await setDoc(doc(db, "userGroups", uid), { groups: { [gid]: deleteField() } }, { merge: true }); }
+  catch(e){}
+}
+async function findMyGroups(){
+  try {
+    const s = await getDoc(doc(db, "userGroups", uid));
+    return s.exists() ? (s.data().groups || {}) : {};
+  } catch(e){ return {}; }
+}
+
+/* ログイン済みの人が戻ってくるための画面 */
+function showLogin(){
+  $("gatePanel").innerHTML = `
+    <div class="gate-card">
+      <h2>おかえりなさい</h2>
+      <div class="lead">前にお使いだったアカウントでログインすると、そのまま世帯に戻れます。</div>
+      <button class="primary-btn" id="loginGoogle">Googleでログイン</button>
+      <div style="display:flex;align-items:center;gap:10px;color:var(--grey);font-size:11px;font-weight:700">
+        <span style="flex:1;height:1px;background:var(--border)"></span>または<span style="flex:1;height:1px;background:var(--border)"></span>
+      </div>
+      <div class="field"><label for="liEmail">メールアドレス</label>
+        <input id="liEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="field"><label for="liPass">パスワード</label>
+        <input id="liPass" type="password" autocomplete="current-password" placeholder="6文字以上"></div>
+      <button class="outline-btn" id="loginEmail">メールアドレスでログイン</button>
+      <button class="link-btn" id="loginReset" style="align-self:center">パスワードを忘れた方はこちら</button>
+    </div>
+    <div class="gate-card">
+      <div class="lead">はじめての方、またはアカウント登録をしていない方はこちらです。</div>
+      <button class="outline-btn" id="loginGuest">新規ではじめる / 招待コードで参加</button>
+    </div>
+    <div class="hint" style="text-align:center">
+      <a class="help-link" href="manual.html" target="_blank" rel="noopener">使い方ガイド</a></div>`;
+  $("loginGoogle").addEventListener("click", loginWithGoogle);
+  $("loginEmail").addEventListener("click", () =>
+    loginWithEmail($("liEmail").value.trim(), $("liPass").value));
+  $("liPass").addEventListener("keydown", e => {
+    if (e.key === "Enter") loginWithEmail($("liEmail").value.trim(), $("liPass").value);
+  });
+  $("loginReset").addEventListener("click", () => resetPassword($("liEmail").value.trim()));
+  $("loginGuest").addEventListener("click", () => {
+    store.del("hq_signed_out");
+    gateLoading("準備しています…");
+    signInAnonymously(auth).catch(e => gateError("認証に失敗しました。\n" + friendlyError(e), "戻る", showLogin));
+  });
+}
+
+async function loginWithGoogle(){
+  gateLoading("Googleでログインしています…");
+  try {
+    store.del("hq_signed_out");
+    await signInWithPopup(auth, new GoogleAuthProvider());
+    // 続きは onAuthStateChanged が処理する
+  } catch(e){
+    gateError("ログインできませんでした。\n" + friendlyError(e), "戻る", showLogin);
+  }
+}
+
+async function loginWithEmail(email, pass){
+  if (!email || !pass){ toast("メールアドレスとパスワードを入力してください"); return; }
+  gateLoading("ログインしています…");
+  try {
+    store.del("hq_signed_out");
+    await signInWithEmailAndPassword(auth, email, pass);
+    // 続きは onAuthStateChanged が処理する
+  } catch(e){
+    gateError("ログインできませんでした。\n" + friendlyError(e), "戻る", showLogin);
+  }
+}
+
+async function resetPassword(email){
+  if (!email){ toast("メールアドレスを入力してから押してください"); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    toast("再設定メールを送信しました。受信箱をご確認ください");
+  } catch(e){ toast(friendlyError(e)); }
+}
+
+/* 複数の世帯に所属している場合の選択画面 */
+function showGroupPicker(groups){
+  const entries = Object.entries(groups);
+  $("gatePanel").innerHTML = `
+    <div class="gate-card">
+      <h2>世帯をえらぶ</h2>
+      <div class="lead">このアカウントは複数の世帯に参加しています。</div>
+      ${entries.map(([gid,name]) =>
+        `<button class="outline-btn" data-gid="${esc(gid)}">${esc(name || "（名称未設定）")}</button>`).join("")}
+      <button class="ghost-btn" id="pickOther">別の世帯をつくる / 参加する</button>
+    </div>`;
+  $("gatePanel").querySelectorAll("[data-gid]").forEach(b => b.addEventListener("click", () => {
+    groupId = b.dataset.gid;
+    store.set("hq_group_id", groupId);
+    bootGroup();
+  }));
+  $("pickOther").addEventListener("click", showWelcome);
+}
+
 function showWelcome(){
   $("gatePanel").innerHTML = `
     <div class="gate-card">
@@ -502,10 +617,16 @@ function showWelcome(){
       <button class="outline-btn" id="goJoin">招待コードで参加する</button>
     </div>
     <div class="hint" style="text-align:center">データはこの端末に紐づいて保存されます。<br>参加後にGoogleログインを設定すると、機種変更しても引き継げます。</div>
+    <div class="gate-card">
+      <h2>すでにお使いの方</h2>
+      <div class="lead">アカウント登録を済ませている方は、ログインすると前の世帯に戻れます。</div>
+      <button class="outline-btn" id="goLogin">ログイン画面へ</button>
+    </div>
     <div class="hint" style="text-align:center">はじめての方は
       <a class="help-link" href="manual.html" target="_blank" rel="noopener">使い方ガイド</a> をご覧ください。</div>`;
   $("goCreate").addEventListener("click", showCreateForm);
   $("goJoin").addEventListener("click", showJoinForm);
+  $("goLogin").addEventListener("click", showLogin);
 }
 
 async function loadTemplates(){
@@ -641,6 +762,7 @@ async function createGroup(groupName, userName, emoji, tpl){
     activeUserId = myUserId;
     store.set("hq_group_id", gid);
     store.set("hq_active_user", myUserId);
+    await rememberGroup(gid, groupName);
     enterApp();
     setTimeout(() => toast(`招待コード ${code} をご家族に共有してください`), 600);
   } catch(e){
@@ -670,6 +792,7 @@ async function joinGroup(code, userName, emoji){
     activeUserId = myUserId;
     store.set("hq_group_id", gid);
     store.set("hq_active_user", myUserId);
+    await rememberGroup(gid, "");
     enterApp();
     setTimeout(() => toast("世帯に参加しました 🎉"), 500);
   } catch(e){
@@ -677,9 +800,10 @@ async function joinGroup(code, userName, emoji){
   }
 }
 
-function leaveDevice(){
+async function leaveDevice(){
   if (!confirm("この端末を世帯から切り離しますか？\n（データは残ります。招待コードで再参加できます）")) return;
   stopSync();
+  if (groupId) await forgetGroup(groupId);
   groupId = null; groupDoc = null; activeUserId = null;
   users = []; chores = []; choreLogs = []; cashOutRequests = [];
   store.del("hq_group_id"); store.del("hq_active_user");
@@ -843,9 +967,65 @@ async function linkGoogle(){
     } else toast(friendlyError(e));
   }
 }
+const hasProvider = id => !!(auth.currentUser?.providerData || []).find(p => p.providerId === id);
+function providerLabel(){
+  if (hasProvider("google.com")) return "Googleアカウント";
+  if (hasProvider("password")) return "メールアドレス";
+  return "アカウント";
+}
+
+/* 匿名アカウントにメール/パスワードを紐づける（データはそのまま引き継がれる） */
+function openEmailLinkDialog(){
+  const ov = $("authOverlay");
+  $("authDialog").innerHTML = `<h3>メールアドレスで登録</h3>
+    <div class="hint">いまの世帯やクレジットはそのまま引き継がれます。次回からこのメールアドレスでログインできます。</div>
+    <div class="form-grid">
+      <div class="field"><label for="lkEmail">メールアドレス</label>
+        <input id="lkEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="field"><label for="lkPass">パスワード（6文字以上）</label>
+        <input id="lkPass" type="password" autocomplete="new-password"></div>
+      <div class="field"><label for="lkPass2">パスワード（確認）</label>
+        <input id="lkPass2" type="password" autocomplete="new-password"></div>
+      <button class="primary-btn" id="lkGo">登録する</button>
+      <button class="ghost-btn" id="lkCancel">キャンセル</button>
+    </div>`;
+  ov.classList.add("show");
+  $("lkCancel").addEventListener("click", () => ov.classList.remove("show"));
+  $("lkGo").addEventListener("click", async () => {
+    const email = $("lkEmail").value.trim(), p1 = $("lkPass").value, p2 = $("lkPass2").value;
+    if (!email){ toast("メールアドレスを入力してください"); return; }
+    if (p1.length < 6){ toast("パスワードは6文字以上にしてください"); return; }
+    if (p1 !== p2){ toast("確認用パスワードが一致しません"); return; }
+    await linkEmail(email, p1);
+  });
+}
+
+async function linkEmail(email, pass){
+  try {
+    await linkWithCredential(auth.currentUser, EmailAuthProvider.credential(email, pass));
+    $("authOverlay").classList.remove("show");
+    toast("メールアドレスを登録しました ✅");
+    renderManageTab();
+  } catch(e){
+    if (e.code === "auth/email-already-in-use" || e.code === "auth/credential-already-in-use"){
+      if (!confirm("そのメールアドレスは既に登録されています。\nそちらのアカウントでログインし直しますか？\n（この端末の一時データは破棄されます）")) return;
+      try {
+        store.del("hq_group_id"); store.del("hq_active_user");
+        await signInWithEmailAndPassword(auth, email, pass);
+        location.reload();
+      } catch(e2){ toast(friendlyError(e2)); }
+    } else toast(friendlyError(e));
+  }
+}
+
 async function doSignOut(){
-  if (!confirm("ログアウトしますか？")) return;
+  const anon = auth.currentUser && auth.currentUser.isAnonymous;
+  const msg = anon
+    ? "ログアウトしますか？\n\n⚠️ このアカウントは未登録のため、ログアウトすると二度と戻れません。\n世帯に戻るには招待コードが必要です。"
+    : `ログアウトしますか？\n同じ${providerLabel()}でログインすれば元に戻れます。`;
+  if (!confirm(msg)) return;
   stopSync();
+  store.set("hq_signed_out", "1");
   store.del("hq_group_id"); store.del("hq_active_user");
   await signOut(auth);
   location.reload();
@@ -1128,9 +1308,11 @@ function renderManageTab(){
 
     <div class="section-title"><span class="ic">🔐</span>アカウント</div>
     <div class="card form-grid">
-      ${anon ? `<div class="badge-warn">⚠️ 現在は「おためしログイン」です。ブラウザのデータを消したり機種変更すると、この世帯に戻れなくなります。Googleアカウントを連携しておくと安全です。</div>
-        <button class="primary-btn" id="btnLinkGoogle">Googleアカウントを連携する</button>`
-        : `<div class="status-line"><span class="status-dot on"></span>Googleアカウント連携済み（${esc(auth.currentUser?.email || "")}）</div>`}
+      ${anon ? `<div class="badge-warn">⚠️ 現在は「おためしログイン」です。ブラウザのデータを消したり機種変更すると、この世帯に戻れなくなります。アカウントを登録しておくと安全です。</div>
+        <button class="primary-btn" id="btnLinkGoogle">Googleアカウントを連携する</button>
+        <button class="outline-btn" id="btnLinkEmail">メールアドレスで登録する</button>`
+        : `<div class="status-line"><span class="status-dot on"></span>${esc(providerLabel())}で登録済み（${esc(auth.currentUser?.email || "")}）</div>
+        ${hasProvider("password") ? '<button class="ghost-btn" id="btnChangePass">パスワードを再設定する</button>' : ""}`}
       <button class="ghost-btn" id="btnSignOut">ログアウト</button>
     </div>
 
@@ -1197,6 +1379,13 @@ function renderManageTab(){
   });
   $("btnLeave").addEventListener("click", leaveDevice);
   const lg = $("btnLinkGoogle"); if (lg) lg.addEventListener("click", linkGoogle);
+  const le = $("btnLinkEmail"); if (le) le.addEventListener("click", openEmailLinkDialog);
+  const cp = $("btnChangePass"); if (cp) cp.addEventListener("click", async () => {
+    const em = auth.currentUser?.email;
+    if (!em){ toast("メールアドレスが登録されていません"); return; }
+    if (!confirm(`${em} 宛にパスワード再設定メールを送りますか？`)) return;
+    await resetPassword(em);
+  });
   $("btnSignOut").addEventListener("click", doSignOut);
 
   $("btnAddChore").addEventListener("click", () => {
@@ -1299,7 +1488,7 @@ $("bottomNav").querySelectorAll("button").forEach(b => b.addEventListener("click
   document.querySelectorAll(".tab-page").forEach((p,i) => p.classList.toggle("active", i === selectedTab));
   renderAll();
 }));
-["celebOverlay","editOverlay"].forEach(id =>
+["celebOverlay","editOverlay","authOverlay"].forEach(id =>
   $(id).addEventListener("click", e => { if (e.target === $(id)) $(id).classList.remove("show"); }));
 
 setInterval(() => {
@@ -1317,28 +1506,57 @@ function enterApp(){
   renderAll();
 }
 
-gateLoading("接続しています…");
-onAuthStateChanged(auth, async user => {
-  if (!user){
-    try { await signInAnonymously(auth); }
-    catch(e){ gateError("認証に失敗しました。\n" + friendlyError(e)); }
-    return;
-  }
-  uid = user.uid;
-  if (!groupId){ showWelcome(); return; }
+/* 保存済みのgroupIdで世帯に入る */
+async function bootGroup(){
   gateLoading("世帯データを読み込んでいます…");
   try {
     const snap = await getDoc(doc(db, "groups", groupId));
     if (!snap.exists() || !snap.data().members || !(uid in snap.data().members)){
       store.del("hq_group_id");
+      const stale = groupId;
       groupId = null;
-      gateError("この端末は世帯のメンバーではありません。\n招待コードで参加し直してください。", "招待コードで参加", showJoinForm);
+      await forgetGroup(stale);
+      gateError("この世帯のメンバーではありません。\n招待コードで参加し直してください。", "招待コードで参加", showJoinForm);
       return;
     }
     groupDoc = snap.data();
+    await rememberGroup(groupId, groupDoc.name || "");   // 既存ユーザーの後追い登録
     enterApp();
   } catch(e){
     gateError("読み込みに失敗しました。\n" + friendlyError(e), "再試行", () => location.reload());
+  }
+}
+
+gateLoading("接続しています…");
+onAuthStateChanged(auth, async user => {
+  if (!user){
+    // 明示的にログアウトした直後は、勝手に匿名ログインし直さずログイン画面を出す
+    if (store.get("hq_signed_out", null)){ showLogin(); return; }
+    try { await signInAnonymously(auth); }
+    catch(e){ gateError("認証に失敗しました。\n" + friendlyError(e), "再試行", () => location.reload()); }
+    return;
+  }
+  uid = user.uid;
+  store.del("hq_signed_out");
+
+  if (groupId){ await bootGroup(); return; }
+
+  // 端末に世帯の記録がない場合、アカウントに紐づいた世帯を探す
+  gateLoading("所属している世帯を探しています…");
+  const mine = await findMyGroups();
+  const keys = Object.keys(mine);
+  if (keys.length === 1){
+    groupId = keys[0];
+    store.set("hq_group_id", groupId);
+    await bootGroup();
+  } else if (keys.length > 1){
+    showGroupPicker(mine);
+  } else if (user.isAnonymous){
+    showWelcome();
+  } else {
+    // Googleでログインしたが所属世帯が見つからなかった
+    showWelcome();
+    setTimeout(() => toast("参加中の世帯が見つかりませんでした"), 400);
   }
 });
 </script>
