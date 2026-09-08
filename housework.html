@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>HomeQuest - 家族の家事とお小遣い</title>
+<meta name="description" content="家族で家事を分担し、こなすたびにクレジットが貯まる。貯めたクレジットはお小遣いに交換できます。">
+<meta name="theme-color" content="#6750A4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#6750A4;
+  --mint:#386A20;
+  --gold:#FFB703;
+  --bg:#F7F2FA;
+  --text:#1D1B20;
+  --card:#FFFFFF;
+  --beige:#EADDFF;
+  --grey:#49454F;
+  --red:#B3261E;
+  --done-bg:#F4EFF4;
+  --border-sel:#D0BCFF;
+  --border:#CAC4D0;
+  --chip-red-bg:#F9DEDC;
+  --chip-green-bg:#E2F0D9;
+  --icon-red-bg:#FFDAD6;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN','Hiragino Sans',sans-serif;
+  background:var(--bg);color:var(--text);display:flex;justify-content:center;
+}
+#root{width:100%;max-width:560px;min-height:100dvh;display:flex;flex-direction:column;position:relative}
+@media(min-width:600px){#root{box-shadow:0 0 40px rgba(103,80,164,.12)}}
+button{font-family:inherit;border:none;cursor:pointer;background:none}
+input,select,textarea{font-family:inherit;font-size:14px}
+.hidden{display:none !important}
+
+/* ================= Onboarding / Gate ================= */
+#gate{flex:1;display:flex;flex-direction:column;justify-content:center;padding:28px 22px;gap:18px}
+.gate-hero{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;margin-bottom:6px}
+.gate-hero .mark{width:72px;height:72px;border-radius:22px;background:var(--beige);
+  display:flex;align-items:center;justify-content:center;font-size:36px}
+.gate-hero h1{font-size:28px;font-weight:900;color:var(--primary);letter-spacing:-1px}
+.gate-hero p{font-size:13px;color:var(--grey);line-height:1.7;font-weight:500}
+.gate-panel{display:flex;flex-direction:column;gap:12px}
+.gate-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;
+  display:flex;flex-direction:column;gap:12px}
+.gate-card h2{font-size:15px;font-weight:800}
+.gate-card .lead{font-size:12px;color:var(--grey);line-height:1.6}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:700;color:var(--grey)}
+.field input,.field select{border:1px solid var(--border);border-radius:10px;padding:11px 12px;
+  background:var(--card);width:100%}
+.field input:focus,.field select:focus{outline:2px solid var(--border-sel);outline-offset:-1px}
+.code-input{text-transform:uppercase;letter-spacing:4px;font-weight:800;font-size:18px !important;text-align:center}
+.emoji-grid{display:flex;gap:6px;flex-wrap:wrap}
+.emoji-grid button{width:42px;height:42px;border-radius:11px;background:var(--card);
+  border:1px solid var(--border);font-size:21px}
+.emoji-grid button.sel{background:var(--beige);border-color:var(--border-sel)}
+.spinner{width:26px;height:26px;border:3px solid var(--beige);border-top-color:var(--primary);
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gate-loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:60px 0}
+.gate-loading .msg{font-size:13px;font-weight:700;color:var(--grey)}
+.err-box{background:var(--chip-red-bg);color:var(--red);border-radius:10px;padding:11px 13px;
+  font-size:12px;font-weight:700;line-height:1.6}
+.link-btn{font-size:12px;font-weight:700;color:var(--primary);text-decoration:underline;padding:6px}
+
+/* ================= App shell ================= */
+#app{flex:1;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;
+  background:var(--bg);position:sticky;top:0;z-index:20}
+.topbar .brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo-box{width:36px;height:36px;border-radius:10px;background:var(--beige);flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;font-size:18px}
+.brand h1{font-size:19px;font-weight:900;color:var(--primary);letter-spacing:-.5px;line-height:1.15}
+.brand .sub{font-size:10px;font-weight:600;color:var(--grey);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.top-actions{display:flex;gap:6px;flex:0 0 auto}
+.icon-btn{width:36px;height:36px;border-radius:10px;background:var(--beige);
+  display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--primary)}
+.icon-btn:active{transform:scale(.94)}
+
+.user-switcher{padding:2px 16px 4px}
+.user-switcher .label{font-size:11px;font-weight:700;color:var(--grey);margin-bottom:6px}
+.user-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.user-row::-webkit-scrollbar{display:none}
+.user-chip{flex:0 0 auto;display:flex;align-items:center;gap:8px;background:var(--card);
+  border:1px solid var(--border);border-radius:12px;padding:8px 12px;transition:background .15s}
+.user-chip.sel{background:var(--beige);border-color:var(--border-sel)}
+.user-chip .avatar{width:28px;height:28px;border-radius:50%;background:#F3EDF7;position:relative;
+  display:flex;align-items:center;justify-content:center;font-size:16px}
+.user-chip.sel .avatar{background:var(--border-sel)}
+.user-chip .dot{position:absolute;top:-3px;right:-3px;width:11px;height:11px;
+  background:var(--red);border-radius:50%;border:2px solid var(--card)}
+.user-chip .uname{font-size:12px;font-weight:700;white-space:nowrap}
+.user-chip .ucr{font-size:11px;font-weight:700;color:var(--grey)}
+.user-chip.sel .ucr{color:var(--primary)}
+.user-chip .me{font-size:9px;font-weight:800;color:var(--primary);background:var(--card);
+  border-radius:6px;padding:1px 4px}
+.no-members{font-size:13px;color:var(--red);padding:4px 0}
+
+.time-banner{margin:2px 16px;background:rgba(103,80,164,.08);border-radius:10px;display:flex;
+  align-items:center;justify-content:space-between;padding:8px 12px;width:calc(100% - 32px);text-align:left}
+.time-banner .t{font-size:12px;font-weight:700}
+.time-banner .go{font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap}
+.time-banner.offset-active{background:rgba(255,183,3,.2)}
+
+main{flex:1;padding:8px 16px 92px;overflow-y:auto}
+.tab-page{display:none;flex-direction:column;gap:10px}
+.tab-page.active{display:flex}
+
+.filter-row{display:flex;gap:8px;padding:2px 0 4px}
+.filter-chip{flex:1;padding:8px 4px;border-radius:10px;border:1px solid var(--border);
+  background:var(--card);font-size:12px;font-weight:700;color:var(--grey)}
+.filter-chip.sel{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;gap:8px;padding:52px 16px;text-align:center}
+.empty-state .big{font-size:50px}
+.empty-state .msg{font-weight:700;color:var(--grey);font-size:13px;line-height:1.7}
+
+.card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:14px}
+.chore-card{border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;
+  background:var(--card);border:1px solid var(--border-sel)}
+.chore-card.fresh{background:var(--done-bg);opacity:.85;border-color:rgba(202,196,208,.5)}
+.chore-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chore-title-wrap{display:flex;align-items:center;gap:8px;min-width:0}
+.chore-ic{width:36px;height:36px;border-radius:8px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;font-size:17px}
+.chore-ic.overdue{background:var(--icon-red-bg)}
+.chore-ic.fresh{background:var(--beige)}
+.chore-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chore-cycle{font-size:11px;color:var(--grey)}
+.chore-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto}
+.status-badge{font-size:10px;font-weight:700;border-radius:10px;padding:2px 7px;white-space:nowrap}
+.status-badge.overdue{background:var(--chip-red-bg);color:var(--red)}
+.status-badge.fresh{background:var(--chip-green-bg);color:var(--mint)}
+.chore-cr{font-size:14px;font-weight:800;color:var(--primary)}
+.chore-cr .star{color:var(--gold);font-size:12px}
+.gauge-row{display:flex;justify-content:space-between;align-items:center}
+.gauge-label{font-size:10px;color:var(--grey)}
+.gauge-remaining{font-size:11px;font-weight:700}
+.gauge-remaining.overdue{color:var(--red)}
+.gauge-remaining.fresh{color:var(--mint)}
+.gauge-track{height:6px;border-radius:3px;background:rgba(202,196,208,.35);overflow:hidden}
+.gauge-fill{height:100%;border-radius:3px;transition:width .4s}
+.complete-btn{width:100%;height:38px;border-radius:10px;background:var(--primary);color:#fff;
+  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px}
+.complete-btn:active:not(:disabled){transform:scale(.98)}
+.complete-btn:disabled{cursor:default}
+.complete-btn.waiting{background:var(--chip-green-bg);color:var(--mint)}
+.complete-btn.nouser{background:#E0E0E0;color:#9E9E9E}
+
+.papa-banner{background:rgba(103,80,164,.08);border:1.5px solid rgba(103,80,164,.5);
+  border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.papa-banner .head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.papa-banner .title{font-size:13px;font-weight:900;color:var(--primary)}
+.count-pill{background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:2px 6px}
+.papa-banner .desc{font-size:11px;color:var(--grey)}
+.req-card{background:var(--card);border:1px solid var(--beige);border-radius:12px;padding:12px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px}
+.req-card .who{font-size:14px;font-weight:800}
+.req-card .who small{font-size:11px;font-weight:500;color:var(--grey)}
+.req-card .amt{font-size:13px;font-weight:700;color:var(--primary)}
+.req-card .yen{font-size:14px;font-weight:900;color:var(--gold)}
+.pay-btn{background:var(--mint);color:#fff;font-size:11px;font-weight:700;
+  border-radius:8px;padding:9px 12px;white-space:nowrap}
+.divider{border:none;border-top:1px solid var(--beige);margin:6px 0}
+
+.wallet-card{background:linear-gradient(135deg,var(--primary),#7F67BE);color:#fff;
+  border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:4px}
+.wallet-card .wl{font-size:12px;font-weight:700;opacity:.85}
+.wallet-card .wv{font-size:34px;font-weight:900}
+.wallet-card .wv small{font-size:15px;font-weight:700}
+.wallet-card .wn{font-size:11px;opacity:.8}
+.section-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;margin-top:4px}
+.section-title .ic{width:32px;height:32px;border-radius:50%;background:var(--beige);flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;font-size:15px}
+.amt-presets{display:flex;gap:8px}
+.amt-presets button{flex:1;padding:10px 0;border-radius:10px;border:1px solid var(--border);
+  background:var(--card);font-weight:700;font-size:13px;color:var(--text)}
+.amt-presets button.sel{background:var(--beige);border-color:var(--border-sel);color:var(--primary)}
+.amt-input-row{display:flex;gap:8px}
+.amt-input-row input{flex:1;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--card)}
+.primary-btn{background:var(--primary);color:#fff;border-radius:10px;padding:12px 16px;
+  font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px}
+.primary-btn:disabled{background:#E0E0E0;color:#9E9E9E}
+.primary-btn:active:not(:disabled){transform:scale(.98)}
+.outline-btn{border:1px solid var(--primary);color:var(--primary);border-radius:10px;
+  padding:12px 16px;font-weight:700;font-size:13px;text-align:center}
+.ghost-btn{border:1px solid var(--border);color:var(--grey);border-radius:10px;
+  padding:11px 16px;font-weight:700;font-size:12px;text-align:center}
+.hint{font-size:11px;color:var(--grey);line-height:1.7}
+.req-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px}
+.req-row.approved{background:var(--done-bg);opacity:.85}
+.req-row .info .l1{font-size:13px;font-weight:700}
+.req-row .info .l2{font-size:11px;color:var(--grey)}
+.req-actions{display:flex;gap:6px;flex:0 0 auto}
+.small-btn{font-size:11px;font-weight:700;border-radius:8px;padding:8px 10px}
+.small-btn.green{background:var(--mint);color:#fff}
+.small-btn.outline-red{border:1px solid var(--red);color:var(--red)}
+.approved-badge{font-size:10px;font-weight:700;color:var(--mint);background:var(--chip-green-bg);
+  border-radius:8px;padding:3px 8px;white-space:nowrap}
+
+.log-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;
+  display:flex;align-items:center;gap:10px}
+.log-row .lav{width:34px;height:34px;border-radius:50%;background:var(--beige);flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;font-size:16px}
+.log-row .lbody{flex:1;min-width:0}
+.log-row .l1{font-size:13px;font-weight:700}
+.log-row .l2{font-size:11px;color:var(--grey)}
+.log-row .lcr{font-size:13px;font-weight:800;color:var(--gold);white-space:nowrap}
+.text-btn{font-size:12px;font-weight:700;color:var(--red);padding:8px}
+.summary-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.summary-strip::-webkit-scrollbar{display:none}
+.sum-chip{flex:0 0 auto;background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:8px 12px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px}
+.sum-chip b{color:var(--primary)}
+
+.form-grid{display:flex;flex-direction:column;gap:9px}
+.form-grid input,.form-grid select{border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;background:var(--card);width:100%}
+.form-2col{display:flex;gap:8px}
+.form-2col>*{flex:1}
+.manage-item{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.manage-item .m1{font-size:13px;font-weight:700}
+.manage-item .m2{font-size:11px;color:var(--grey)}
+.mini-btn{font-size:11px;font-weight:700;border-radius:8px;padding:7px 10px}
+.mini-btn.purple{background:var(--beige);color:var(--primary)}
+.mini-btn.red{background:var(--chip-red-bg);color:var(--red)}
+.invite-box{background:var(--beige);border-radius:14px;padding:16px;display:flex;
+  flex-direction:column;align-items:center;gap:8px}
+.invite-box .code{font-size:30px;font-weight:900;color:var(--primary);letter-spacing:7px;
+  font-variant-numeric:tabular-nums;padding-left:7px}
+.invite-box .lbl{font-size:11px;font-weight:700;color:var(--grey)}
+.badge-warn{background:#FFF4D6;border:1px solid var(--gold);border-radius:12px;padding:12px;
+  font-size:11px;color:#6B4B00;line-height:1.7;font-weight:600}
+textarea.json-area{width:100%;height:120px;border:1px solid var(--border);border-radius:10px;
+  padding:10px;font-family:ui-monospace,monospace;font-size:11px;background:var(--card);resize:vertical}
+.btn-row{display:flex;gap:8px}
+.btn-row>*{flex:1}
+.status-line{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:8px;
+  padding:10px;font-size:11px;font-weight:700}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#9E9E9E;flex:0 0 auto}
+.status-dot.on{background:#4CAF50}
+
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:560px;
+  display:flex;background:#ECE6F0;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:30;
+  box-shadow:0 -2px 12px rgba(29,27,32,.06)}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0}
+nav .nic{font-size:18px;width:52px;height:26px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;color:rgba(73,69,79,.75)}
+nav .nlbl{font-size:10px;font-weight:700;color:rgba(73,69,79,.75)}
+nav button.sel .nic{background:rgba(202,196,208,.55);color:var(--primary)}
+nav button.sel .nlbl{color:var(--primary)}
+
+.overlay{position:fixed;inset:0;background:rgba(29,27,32,.45);z-index:50;
+  display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.show{display:flex}
+.dialog{background:var(--card);border-radius:24px;padding:24px;width:100%;max-width:400px;
+  display:flex;flex-direction:column;gap:14px;max-height:88dvh;overflow-y:auto}
+.dialog h3{font-size:17px;font-weight:900;color:var(--primary);text-align:center}
+.tt-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.tt-grid button{padding:12px 4px;border-radius:12px;background:var(--beige);color:var(--primary);
+  font-weight:800;font-size:13px}
+.offset-info{font-size:12px;color:var(--grey);text-align:center;font-weight:700;line-height:1.7}
+
+.celebrate{align-items:center;text-align:center;position:relative;overflow:hidden}
+.celeb-avatar{width:100px;height:100px;border-radius:50%;background:var(--beige);
+  display:flex;align-items:center;justify-content:center;font-size:54px;
+  animation:jump .4s ease-in-out infinite alternate}
+@keyframes jump{from{transform:translateY(0) scale(1)}to{transform:translateY(-26px) scale(1.14)}}
+.coin-stage{position:relative;width:100%;height:86px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center}
+.coin-stage .cr-big{font-size:30px;font-weight:900;color:var(--gold)}
+.coin-stage .cr-sub{font-size:12px;font-weight:700;color:var(--grey)}
+.coin{position:absolute;left:50%;top:50%;font-size:18px;pointer-events:none;
+  animation:burst .9s cubic-bezier(.2,.8,.4,1) forwards}
+@keyframes burst{
+  0%{transform:translate(-50%,-50%) scale(.3);opacity:1}
+  100%{transform:translate(calc(-50% + var(--cx)),calc(-50% + var(--cy))) scale(var(--cs));opacity:0}
+}
+.celeb-msg{font-size:14px;font-weight:700;line-height:1.6}
+@media(prefers-reduced-motion:reduce){
+  .celeb-avatar{animation:none}
+  .coin{animation-duration:.01s}
+  .spinner{animation-duration:2s}
+}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--text);
+  color:#fff;font-size:12px;font-weight:700;border-radius:20px;padding:10px 18px;z-index:60;
+  opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="root">
+
+  <!-- ============ Gate (auth / onboarding) ============ -->
+  <div id="gate">
+    <div class="gate-hero">
+      <div class="mark">🏠</div>
+      <h1>HomeQuest</h1>
+      <p>家族で家事を分担して、こなすたびにクレジットが貯まる。<br>貯めたクレジットはお小遣いに交換できます。</p>
+    </div>
+    <div class="gate-panel" id="gatePanel"></div>
+  </div>
+
+  <!-- ============ App ============ -->
+  <div id="app" class="hidden">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-box">🏠</div>
+        <div style="min-width:0">
+          <h1>HomeQuest</h1>
+          <div class="sub" id="groupNameLabel">—</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="btnTimeTravel" title="時間を進める" aria-label="時間を進める">⏰</button>
+      </div>
+    </header>
+
+    <section class="user-switcher">
+      <div class="label">👥 操作メンバー (タップして選択)</div>
+      <div class="user-row" id="userRow"></div>
+    </section>
+
+    <button class="time-banner" id="timeBanner">
+      <span class="t" id="timeBannerText">⏰ 仮想日時: --</span>
+      <span class="go">時間を進める ➔</span>
+    </button>
+
+    <main>
+      <div class="tab-page active" id="tab0">
+        <div class="filter-row" id="filterRow"></div>
+        <div id="papaSection"></div>
+        <div id="choreList" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+      <div class="tab-page" id="tab1"></div>
+      <div class="tab-page" id="tab2"></div>
+      <div class="tab-page" id="tab3"></div>
+    </main>
+
+    <nav id="bottomNav">
+      <button data-tab="0" class="sel"><span class="nic">📋</span><span class="nlbl">家事ボード</span></button>
+      <button data-tab="1"><span class="nic">⭐</span><span class="nlbl">お小遣い精算</span></button>
+      <button data-tab="2"><span class="nic">💖</span><span class="nlbl">がんばり履歴</span></button>
+      <button data-tab="3"><span class="nic">⚙️</span><span class="nlbl">管理・設定</span></button>
+    </nav>
+  </div>
+
+  <div class="overlay" id="ttOverlay"><div class="dialog">
+    <h3>⏰ 時間シミュレーション</h3>
+    <div class="offset-info" id="ttInfo"></div>
+    <div class="tt-grid">
+      <button data-h="1">+1時間</button><button data-h="6">+6時間</button><button data-h="12">+12時間</button>
+      <button data-h="24">+1日</button><button data-h="72">+3日</button><button data-h="168">+1週間</button>
+    </div>
+    <button class="outline-btn" id="ttReset">オフセットをリセット（現在時刻に戻す）</button>
+    <button class="primary-btn" id="ttClose">閉じる</button>
+  </div></div>
+
+  <div class="overlay" id="celebOverlay"><div class="dialog celebrate" id="celebDialog"></div></div>
+  <div class="overlay" id="editOverlay"><div class="dialog" id="editDialog"></div></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInAnonymously, signOut,
+  GoogleAuthProvider, signInWithPopup, linkWithPopup
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, limit, writeBatch, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* =========================================================
+   Firebase 設定（公開用プロジェクト）
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCm8N_jcwrIrj6KKyFav60ONmu-jeFJr3A",
+  authDomain: "housework-138e2.firebaseapp.com",
+  projectId: "housework-138e2",
+  storageBucket: "housework-138e2.firebasestorage.app",
+  messagingSenderId: "113038742347",
+  appId: "1:113038742347:web:cd4316d7ccf5be868c0ece",
+  measurementId: "G-BGBHE1YG6H"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+});
+
+/* ---------- storage helpers ---------- */
+const mem = {};
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : v; }catch(e){ return k in mem ? mem[k] : d; } },
+  set(k, v){ try{ localStorage.setItem(k, v); }catch(e){ mem[k] = v; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){ delete mem[k]; } }
+};
+
+/* ---------- state ---------- */
+let uid = null;
+let groupId = store.get("hq_group_id", null);
+let groupDoc = null;
+let users = [], chores = [], choreLogs = [], cashOutRequests = [];
+let activeUserId = store.get("hq_active_user", null);
+let timeOffsetMillis = parseInt(store.get("hq_time_offset", "0"), 10) || 0;
+let selectedTab = 0, boardFilter = 0, cashoutAmount = 100;
+let unsubs = [];
+let connected = false;
+let logLimit = 50;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const now = () => Date.now() + timeOffsetMillis;
+
+/* 衝突しないID（複数人が同時に操作しても安全） */
+function newId(){
+  if (crypto.randomUUID) return crypto.randomUUID().replace(/-/g, "").slice(0, 20);
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
+/* 招待コード: 紛らわしい文字(0/O/1/I)を除いた32文字から8桁 */
+const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function newInviteCode(){
+  const a = new Uint32Array(8);
+  crypto.getRandomValues(a);
+  return Array.from(a, n => CODE_CHARS[n % CODE_CHARS.length]).join("");
+}
+
+function toast(msg){
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("show"), 2400);
+}
+function friendlyError(e){
+  const c = e && e.code || "";
+  if (c === "permission-denied") return "アクセス権がありません。世帯に参加しているか確認してください。";
+  if (c === "unavailable") return "ネットワークに接続できません。通信環境を確認してください。";
+  if (c === "auth/popup-blocked") return "ポップアップがブロックされました。ブラウザの設定を確認してください。";
+  if (c === "auth/popup-closed-by-user") return "ログインがキャンセルされました。";
+  if (c === "auth/unauthorized-domain") return "このドメインは未承認です。Firebaseコンソールの承認済みドメインに追加してください。";
+  return (e && e.message) || "不明なエラーが発生しました。";
+}
+
+/* ---------- domain logic ---------- */
+const isOverdue = (c, t) => !c.lastCompletedTime || t - c.lastCompletedTime >= c.cycleHours * 3600000;
+function freshness(c, t){
+  if (!c.lastCompletedTime) return 0;
+  return Math.min(1, Math.max(0, 1 - (t - c.lastCompletedTime) / (c.cycleHours * 3600000)));
+}
+function formatCycleHours(h){
+  if (h >= 168 && h % 168 === 0) return `${h/168}週間ごと`;
+  if (h >= 24 && h % 24 === 0) return `${h/24}日ごと`;
+  return `${h}時間ごと`;
+}
+function remainingText(c, t){
+  if (!c.lastCompletedTime) return "未実施";
+  const r = c.lastCompletedTime + c.cycleHours*3600000 - t;
+  if (r <= 0) return "期限超過！";
+  const h = Math.floor(r/3600000);
+  return h < 24 ? `あと ${h} 時間` : `あと ${Math.floor(h/24)}日`;
+}
+function fmtDateTime(ms){
+  const d = new Date(ms), p = n => String(n).padStart(2,"0");
+  const wd = ["日","月","火","水","木","金","土"][d.getDay()];
+  return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} (${wd}) ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function relTime(ms){
+  const d = now() - ms;
+  if (d < 60000) return "たった今";
+  if (d < 3600000) return `${Math.floor(d/60000)}分前`;
+  if (d < 86400000) return `${Math.floor(d/3600000)}時間前`;
+  return `${Math.floor(d/86400000)}日前`;
+}
+const myProfile = () => users.find(u => u.uid === uid) || null;
+function activeUser(){
+  if (!users.length) return null;
+  return users.find(u => u.id === activeUserId) || myProfile() || users[0];
+}
+/* 「支払い担当」= 世帯オーナー。旧仕様のパパ固定をやめて役割ベースに */
+const isPayer = u => !!(u && groupDoc && u.uid && groupDoc.members && groupDoc.members[u.uid] === "owner");
+
+/* ---------- Firestore paths ---------- */
+const colRef = n => collection(db, "groups", groupId, n);
+const docRef = (n, id) => doc(db, "groups", groupId, n, String(id));
+const pushDoc = (n, id, data) => setDoc(docRef(n, id), data);
+const removeDoc = (n, id) => deleteDoc(docRef(n, id));
+
+/* =========================================================
+   Gate: 認証とオンボーディング
+   ========================================================= */
+const EMOJIS = ["👨","👩","👦","👧","👶","👴","👵","🧑","🐶","🐱","🐰","🦊"];
+let pickedEmoji = "🧑";
+
+function gateLoading(msg){
+  $("gatePanel").innerHTML = `<div class="gate-loading"><div class="spinner"></div><div class="msg">${esc(msg)}</div></div>`;
+}
+function gateError(msg, retryLabel, retryFn){
+  $("gatePanel").innerHTML = `<div class="gate-card">
+    <div class="err-box">${esc(msg)}</div>
+    <button class="primary-btn" id="gateRetry">${esc(retryLabel || "もう一度試す")}</button>
+  </div>`;
+  $("gateRetry").addEventListener("click", retryFn || (() => location.reload()));
+}
+
+function showWelcome(){
+  $("gatePanel").innerHTML = `
+    <div class="gate-card">
+      <h2>はじめる</h2>
+      <div class="lead">代表の方が世帯をつくり、表示される招待コードをご家族に共有してください。</div>
+      <button class="primary-btn" id="goCreate">世帯をつくる</button>
+      <button class="outline-btn" id="goJoin">招待コードで参加する</button>
+    </div>
+    <div class="hint" style="text-align:center">データはこの端末に紐づいて保存されます。<br>参加後にGoogleログインを設定すると、機種変更しても引き継げます。</div>`;
+  $("goCreate").addEventListener("click", showCreateForm);
+  $("goJoin").addEventListener("click", showJoinForm);
+}
+
+async function loadTemplates(){
+  try {
+    const snap = await getDocs(collection(db, "templates"));
+    const list = [];
+    snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+    list.sort((a,b) => (a.order ?? 99) - (b.order ?? 99));
+    return list;
+  } catch(e){ return []; }
+}
+
+/* テンプレートが未登録でも動くようにする最小限のフォールバック */
+const FALLBACK_TEMPLATE = {
+  id: "fallback", label: "標準（家族向け）",
+  cashOutPresets: [100,300,500,1000], creditToYen: 1,
+  chores: [
+    { name:"リビング床", cycleHours:24, credits:100 },
+    { name:"皿洗い",     cycleHours:24, credits:100 },
+    { name:"風呂掃除",   cycleHours:24, credits:200 },
+    { name:"トイレ掃除", cycleHours:48, credits:250 },
+    { name:"洗面台",     cycleHours:24, credits:100 },
+    { name:"買い出し",   cycleHours:72, credits:300 },
+    { name:"燃えるゴミ", cycleHours:72, credits:100 }
+  ]
+};
+
+async function showCreateForm(){
+  gateLoading("テンプレートを読み込んでいます…");
+  const templates = await loadTemplates();
+  const opts = templates.length ? templates : [FALLBACK_TEMPLATE];
+  $("gatePanel").innerHTML = `
+    <div class="gate-card">
+      <h2>世帯をつくる</h2>
+      <div class="field"><label for="gName">世帯の名前</label>
+        <input id="gName" placeholder="例: 山田家" maxlength="20"></div>
+      <div class="field"><label for="uName">あなたの名前</label>
+        <input id="uName" placeholder="例: パパ" maxlength="12"></div>
+      <div class="field"><label>アイコン</label>
+        <div class="emoji-grid" id="emojiPick">
+          ${EMOJIS.map(e => `<button type="button" data-e="${e}" class="${e===pickedEmoji?"sel":""}">${e}</button>`).join("")}
+        </div></div>
+      <div class="field"><label for="tplSel">最初に入れる家事リスト</label>
+        <select id="tplSel">${opts.map(t => `<option value="${esc(t.id)}">${esc(t.label || t.id)}（${(t.chores||[]).length}件）</option>`).join("")}</select></div>
+      ${templates.length ? "" : '<div class="hint">※ テンプレート未登録のため、組み込みの標準リストを使います。</div>'}
+      <button class="primary-btn" id="doCreate">この内容でつくる</button>
+      <button class="ghost-btn" id="backW">戻る</button>
+    </div>`;
+  bindEmojiPick();
+  $("backW").addEventListener("click", showWelcome);
+  $("doCreate").addEventListener("click", async () => {
+    const gName = $("gName").value.trim();
+    const uName = $("uName").value.trim();
+    if (!gName || !uName){ toast("世帯名とお名前を入力してください"); return; }
+    const tpl = opts.find(t => t.id === $("tplSel").value) || opts[0];
+    await createGroup(gName, uName, pickedEmoji, tpl);
+  });
+}
+
+function showJoinForm(){
+  $("gatePanel").innerHTML = `
+    <div class="gate-card">
+      <h2>招待コードで参加する</h2>
+      <div class="field"><label for="jCode">招待コード（8桁）</label>
+        <input id="jCode" class="code-input" placeholder="XXXXXXXX" maxlength="8" autocapitalize="characters" autocomplete="off"></div>
+      <div class="field"><label for="jName">あなたの名前</label>
+        <input id="jName" placeholder="例: たろう" maxlength="12"></div>
+      <div class="field"><label>アイコン</label>
+        <div class="emoji-grid" id="emojiPick">
+          ${EMOJIS.map(e => `<button type="button" data-e="${e}" class="${e===pickedEmoji?"sel":""}">${e}</button>`).join("")}
+        </div></div>
+      <button class="primary-btn" id="doJoin">参加する</button>
+      <button class="ghost-btn" id="backW">戻る</button>
+    </div>`;
+  bindEmojiPick();
+  $("backW").addEventListener("click", showWelcome);
+  $("doJoin").addEventListener("click", async () => {
+    const code = $("jCode").value.trim().toUpperCase();
+    const name = $("jName").value.trim();
+    if (code.length !== 8){ toast("招待コードは8桁です"); return; }
+    if (!name){ toast("お名前を入力してください"); return; }
+    await joinGroup(code, name, pickedEmoji);
+  });
+}
+function bindEmojiPick(){
+  const grid = $("emojiPick");
+  if (!grid) return;
+  grid.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    pickedEmoji = b.dataset.e;
+    grid.querySelectorAll("button").forEach(x => x.classList.toggle("sel", x.dataset.e === pickedEmoji));
+  }));
+}
+
+async function createGroup(groupName, userName, emoji, tpl){
+  gateLoading("世帯を作成しています…");
+  try {
+    const gid = newId();
+    const code = newInviteCode();
+
+    // 1) 世帯ドキュメント（membersは自分のuidのみ = ルールの作成条件）
+    await setDoc(doc(db, "groups", gid), {
+      name: groupName,
+      members: { [uid]: "owner" },
+      inviteCode: code,
+      templateId: tpl.id || null,
+      creditToYen: tpl.creditToYen ?? 1,
+      cashOutPresets: tpl.cashOutPresets ?? [100,300,500,1000],
+      createdAt: serverTimestamp()
+    });
+
+    // 2) 招待コードの対応表
+    await setDoc(doc(db, "inviteCodes", code), { groupId: gid, createdAt: serverTimestamp() });
+
+    // 3) テンプレートから初期データを一括投入
+    const batch = writeBatch(db);
+    const myUserId = newId();
+    batch.set(doc(db, "groups", gid, "users", myUserId), {
+      id: myUserId, uid, name: userName, avatarEmoji: emoji, currentCredits: 0
+    });
+    const t = Date.now();
+    for (const c of (tpl.chores || [])){
+      const cid = newId();
+      batch.set(doc(db, "groups", gid, "chores", cid), {
+        id: cid, name: c.name,
+        cycleHours: c.cycleHours || 24,
+        credits: c.credits || 100,
+        lastCompletedTime: t   // 作成直後は「ピカピカ」から開始
+      });
+    }
+    await batch.commit();
+
+    groupId = gid;
+    activeUserId = myUserId;
+    store.set("hq_group_id", gid);
+    store.set("hq_active_user", myUserId);
+    enterApp();
+    setTimeout(() => toast(`招待コード ${code} をご家族に共有してください`), 600);
+  } catch(e){
+    gateError("世帯の作成に失敗しました。\n" + friendlyError(e), "戻る", showWelcome);
+  }
+}
+
+async function joinGroup(code, userName, emoji){
+  gateLoading("世帯を探しています…");
+  try {
+    const snap = await getDoc(doc(db, "inviteCodes", code));
+    if (!snap.exists()){
+      gateError("その招待コードは見つかりませんでした。入力を確認してください。", "入力し直す", showJoinForm);
+      return;
+    }
+    const gid = snap.data().groupId;
+
+    // membersに自分のuidだけを追加（ルールで許可されている操作）
+    await updateDoc(doc(db, "groups", gid), { [`members.${uid}`]: "member" });
+
+    const myUserId = newId();
+    await setDoc(doc(db, "groups", gid, "users", myUserId), {
+      id: myUserId, uid, name: userName, avatarEmoji: emoji, currentCredits: 0
+    });
+
+    groupId = gid;
+    activeUserId = myUserId;
+    store.set("hq_group_id", gid);
+    store.set("hq_active_user", myUserId);
+    enterApp();
+    setTimeout(() => toast("世帯に参加しました 🎉"), 500);
+  } catch(e){
+    gateError("参加に失敗しました。\n" + friendlyError(e), "入力し直す", showJoinForm);
+  }
+}
+
+function leaveDevice(){
+  if (!confirm("この端末を世帯から切り離しますか？\n（データは残ります。招待コードで再参加できます）")) return;
+  stopSync();
+  groupId = null; groupDoc = null; activeUserId = null;
+  users = []; chores = []; choreLogs = []; cashOutRequests = [];
+  store.del("hq_group_id"); store.del("hq_active_user");
+  $("app").classList.add("hidden");
+  $("gate").classList.remove("hidden");
+  showWelcome();
+}
+
+/* =========================================================
+   同期
+   ========================================================= */
+function startSync(){
+  stopSync();
+  unsubs.push(onSnapshot(doc(db, "groups", groupId), d => {
+    if (d.exists()){
+      groupDoc = d.data();
+      connected = true;
+      $("groupNameLabel").textContent = groupDoc.name || "わが家";
+      if (Array.isArray(groupDoc.cashOutPresets) && groupDoc.cashOutPresets.length)
+        cashoutAmount = cashoutAmount || groupDoc.cashOutPresets[0];
+      renderAll();
+    }
+  }, e => { connected = false; onSyncError(e); }));
+
+  const listen = (name, apply, q) => unsubs.push(onSnapshot(q || colRef(name), snap => {
+    const list = [];
+    snap.forEach(d => { const v = d.data(); if (v && v.id != null) list.push(v); });
+    apply(list);
+    connected = true;
+    renderAll();
+  }, e => { connected = false; onSyncError(e); }));
+
+  listen("users", l => { users = l.sort((a,b) => String(a.id).localeCompare(String(b.id))); });
+  listen("chores", l => { chores = l.sort((a,b) => a.name.localeCompare(b.name, "ja")); });
+  listen("cashOutRequests", l => { cashOutRequests = l.sort((a,b) => b.timestamp - a.timestamp); });
+  listen("choreLogs", l => { choreLogs = l; },
+    query(colRef("choreLogs"), orderBy("completedTime", "desc"), limit(logLimit)));
+}
+function stopSync(){ unsubs.forEach(u => u()); unsubs = []; }
+function onSyncError(e){
+  if (e && e.code === "permission-denied"){
+    toast("この世帯へのアクセス権がありません");
+    stopSync();
+    $("app").classList.add("hidden");
+    $("gate").classList.remove("hidden");
+    gateError("この端末は世帯のメンバーとして登録されていません。\n招待コードで参加し直してください。", "招待コードで参加", showJoinForm);
+  } else {
+    renderAll();
+  }
+}
+
+/* =========================================================
+   操作
+   ========================================================= */
+async function completeChore(choreId){
+  const user = activeUser(), chore = chores.find(c => c.id === choreId), t = now();
+  if (!user || !chore || !isOverdue(chore, t)) return;
+  showCelebration(chore, user);
+  try {
+    const batch = writeBatch(db);
+    batch.update(docRef("chores", chore.id), { lastCompletedTime: t });
+    const lid = newId();
+    batch.set(docRef("choreLogs", lid), {
+      id: lid, choreId: chore.id, choreName: chore.name,
+      userId: user.id, userName: user.name, completedTime: t, creditsEarned: chore.credits
+    });
+    batch.update(docRef("users", user.id), { currentCredits: user.currentCredits + chore.credits });
+    await batch.commit();
+  } catch(e){ toast(friendlyError(e)); }
+}
+
+async function requestCashOut(amount){
+  const user = activeUser();
+  if (!user) return;
+  if (!(amount > 0) || user.currentCredits < amount){ toast("クレジットが足りません"); return; }
+  try {
+    const batch = writeBatch(db);
+    batch.update(docRef("users", user.id), { currentCredits: user.currentCredits - amount });
+    const rid = newId();
+    batch.set(docRef("cashOutRequests", rid), {
+      id: rid, userId: user.id, userName: user.name,
+      amount, timestamp: now(), isApproved: false
+    });
+    await batch.commit();
+    toast(`${amount}Cr のお小遣いをおねだりしました 📢`);
+  } catch(e){ toast(friendlyError(e)); }
+}
+async function approveCashOut(req){
+  try {
+    await updateDoc(docRef("cashOutRequests", req.id), { isApproved: true });
+    toast(`${req.userName} に ${yen(req.amount)}円 支払い完了！`);
+  } catch(e){ toast(friendlyError(e)); }
+}
+async function cancelCashOut(req){
+  try {
+    if (!req.isApproved){
+      const u = users.find(x => x.id === req.userId);
+      if (u) await updateDoc(docRef("users", u.id), { currentCredits: u.currentCredits + req.amount });
+    }
+    await removeDoc("cashOutRequests", req.id);
+  } catch(e){ toast(friendlyError(e)); }
+}
+const yen = cr => Math.round(cr * (groupDoc?.creditToYen ?? 1));
+
+async function addChore(name, cycleHours, credits){
+  const id = newId();
+  try {
+    await pushDoc("chores", id, { id, name, cycleHours, credits, lastCompletedTime: 0 });
+    toast(`「${name}」を追加しました`);
+  } catch(e){ toast(friendlyError(e)); }
+}
+async function updateChore(c){
+  try { await pushDoc("chores", c.id, c); } catch(e){ toast(friendlyError(e)); }
+}
+async function deleteChore(c){
+  if (!confirm(`家事「${c.name}」を削除しますか？`)) return;
+  try { await removeDoc("chores", c.id); } catch(e){ toast(friendlyError(e)); }
+}
+async function addMember(name, emoji){
+  const id = newId();
+  try {
+    await pushDoc("users", id, { id, uid: null, name, avatarEmoji: emoji, currentCredits: 0 });
+    toast(`メンバー「${name}」を追加しました`);
+  } catch(e){ toast(friendlyError(e)); }
+}
+async function deleteMember(u){
+  if (u.uid === uid){ toast("自分自身は削除できません"); return; }
+  if (!confirm(`メンバー「${u.name}」を削除しますか？（保有クレジットも消えます）`)) return;
+  try {
+    await removeDoc("users", u.id);
+    if (activeUserId === u.id){ activeUserId = null; store.del("hq_active_user"); }
+  } catch(e){ toast(friendlyError(e)); }
+}
+async function clearHistory(){
+  if (!confirm("表示中のがんばり履歴を削除しますか？")) return;
+  try {
+    const targets = [...choreLogs];
+    for (let i = 0; i < targets.length; i += 400){
+      const batch = writeBatch(db);
+      targets.slice(i, i+400).forEach(l => batch.delete(docRef("choreLogs", l.id)));
+      await batch.commit();
+    }
+    toast("履歴をクリアしました");
+  } catch(e){ toast(friendlyError(e)); }
+}
+
+/* ---------- Googleアカウント連携 ---------- */
+async function linkGoogle(){
+  const provider = new GoogleAuthProvider();
+  try {
+    await linkWithPopup(auth.currentUser, provider);
+    toast("Googleアカウントと連携しました ✅");
+    renderManageTab();
+  } catch(e){
+    if (e.code === "auth/credential-already-in-use" || e.code === "auth/email-already-in-use"){
+      if (!confirm("そのGoogleアカウントは既に使われています。\nそちらでログインし直しますか？（この端末の一時データは破棄されます）")) return;
+      try {
+        await signInWithPopup(auth, provider);
+        location.reload();
+      } catch(e2){ toast(friendlyError(e2)); }
+    } else toast(friendlyError(e));
+  }
+}
+async function doSignOut(){
+  if (!confirm("ログアウトしますか？")) return;
+  stopSync();
+  store.del("hq_group_id"); store.del("hq_active_user");
+  await signOut(auth);
+  location.reload();
+}
+
+/* ---------- JSONバックアップ ---------- */
+const exportJson = () => JSON.stringify({ users, chores, choreLogs, cashOutRequests }, null, 2);
+async function importJson(text){
+  let root;
+  try { root = JSON.parse(text); } catch(e){ return false; }
+  try {
+    const batch = writeBatch(db);
+    const idMap = {};
+    for (const u of root.users || []){
+      const id = idMap["u"+u.id] = newId();
+      batch.set(docRef("users", id), { id, uid: null, name: String(u.name),
+        avatarEmoji: String(u.avatarEmoji || "🧑"), currentCredits: u.currentCredits|0 });
+    }
+    for (const c of root.chores || []){
+      const id = idMap["c"+c.id] = newId();
+      batch.set(docRef("chores", id), { id, name: String(c.name),
+        cycleHours: c.cycleHours|0 || 24, credits: c.credits|0 || 100,
+        lastCompletedTime: Number(c.lastCompletedTime) || 0 });
+    }
+    for (const l of (root.choreLogs || []).slice(0, 200)){
+      const id = newId();
+      batch.set(docRef("choreLogs", id), { id,
+        choreId: idMap["c"+l.choreId] || String(l.choreId), choreName: String(l.choreName),
+        userId: idMap["u"+l.userId] || String(l.userId), userName: String(l.userName),
+        completedTime: Number(l.completedTime) || 0, creditsEarned: l.creditsEarned|0 });
+    }
+    for (const r of root.cashOutRequests || []){
+      const id = newId();
+      batch.set(docRef("cashOutRequests", id), { id,
+        userId: idMap["u"+r.userId] || String(r.userId), userName: String(r.userName),
+        amount: r.amount|0, timestamp: Number(r.timestamp) || 0, isApproved: !!r.isApproved });
+    }
+    await batch.commit();
+    return true;
+  } catch(e){ return false; }
+}
+
+/* =========================================================
+   描画
+   ========================================================= */
+function renderAll(){
+  if (!groupId) return;
+  renderUserSwitcher();
+  renderTimeBanner();
+  if (selectedTab === 0) renderBoardTab();
+  else if (selectedTab === 1) renderCashOutTab();
+  else if (selectedTab === 2) renderHistoryTab();
+  else renderManageTab();
+}
+
+function renderUserSwitcher(){
+  const row = $("userRow");
+  if (!users.length){
+    row.innerHTML = '<div class="no-members">メンバーがいません。管理・設定から追加してください。</div>';
+    return;
+  }
+  const act = activeUser();
+  row.innerHTML = users.map(u => {
+    const sel = act && act.id === u.id;
+    const pending = isPayer(u) ? cashOutRequests.filter(r => !r.isApproved).length : 0;
+    return `<button class="user-chip${sel?" sel":""}" data-uid="${esc(u.id)}">
+      <span class="avatar">${esc(u.avatarEmoji)}${pending?'<span class="dot"></span>':''}</span>
+      <span><span class="uname">${esc(u.name)}${u.uid===uid?' <span class="me">あなた</span>':''}${pending?" 📢":""}</span><br>
+      <span class="ucr">${u.currentCredits} Cr</span></span>
+      ${sel?'<span style="color:var(--mint);font-weight:900">✓</span>':''}
+    </button>`;
+  }).join("");
+  row.querySelectorAll(".user-chip").forEach(b => b.addEventListener("click", () => {
+    activeUserId = b.dataset.uid;
+    store.set("hq_active_user", activeUserId);
+    renderAll();
+  }));
+}
+
+function renderTimeBanner(){
+  $("timeBannerText").textContent = `⏰ 仮想日時: ${fmtDateTime(now())}`;
+  $("timeBanner").classList.toggle("offset-active", timeOffsetMillis !== 0);
+}
+
+/* ---------- TAB 0 ---------- */
+function renderBoardTab(){
+  const t = now(), act = activeUser();
+  $("filterRow").innerHTML = [`全体 (${chores.length})`, "要実施 🚨", "キレイ 🟢"]
+    .map((l,i) => `<button class="filter-chip${boardFilter===i?" sel":""}" data-f="${i}">${l}</button>`).join("");
+  $("filterRow").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    boardFilter = +b.dataset.f; renderBoardTab();
+  }));
+
+  const papaEl = $("papaSection");
+  const pending = (isPayer(act) && boardFilter !== 2) ? cashOutRequests.filter(r => !r.isApproved) : [];
+  if (pending.length){
+    papaEl.innerHTML = `
+      <div class="papa-banner">
+        <div class="head"><span class="title">💰 お小遣い支払いタスク</span>
+        <span class="count-pill">未完了: ${pending.length}件</span></div>
+        <div class="desc">支払いが済んだらボタンをタップして完了にしてください。</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px" id="papaReqs"></div>
+      <hr class="divider">`;
+    const wrap = papaEl.querySelector("#papaReqs");
+    wrap.innerHTML = pending.map(r => `<div class="req-card">
+      <div><div class="who">${esc(r.userName)} <small>からのお小遣い申請</small></div>
+        <div><span class="amt">${r.amount}Cr</span> <span class="yen">【 ${yen(r.amount)}円 】</span></div></div>
+      <button class="pay-btn" data-rid="${esc(r.id)}">払った！(完了)</button></div>`).join("");
+    wrap.querySelectorAll(".pay-btn").forEach(b => b.addEventListener("click", () => {
+      const req = cashOutRequests.find(r => r.id === b.dataset.rid);
+      if (req) approveCashOut(req);
+    }));
+  } else papaEl.innerHTML = "";
+
+  const filtered = chores.filter(c => {
+    const od = isOverdue(c, t);
+    return boardFilter === 1 ? od : boardFilter === 2 ? !od : true;
+  });
+  const list = $("choreList");
+  if (!filtered.length && !pending.length){
+    list.innerHTML = `<div class="empty-state"><div class="big">${chores.length?"✅":"🧹"}</div>
+      <div class="msg">${boardFilter===1 ? "お見事！すべての家事がピカピカです ✨" :
+        chores.length ? "該当する家事がありません。" : "家事がまだありません。<br>管理・設定タブから追加してください。"}</div></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(c => {
+    const od = isOverdue(c, t), f = freshness(c, t);
+    const pColor = od ? "var(--red)" : f < .25 ? "var(--gold)" : "var(--mint)";
+    const cls = !act ? "nouser" : od ? "" : "waiting";
+    const label = !act ? "操作メンバーを選択してください"
+      : od ? `【${esc(act.name)}】が「完了」する` : "完了済み（次の周期まで待機）";
+    return `<div class="chore-card${od?"":" fresh"}">
+      <div class="chore-head">
+        <div class="chore-title-wrap">
+          <div class="chore-ic ${od?"overdue":"fresh"}">${od?"⚠️":"✅"}</div>
+          <div style="min-width:0"><div class="chore-name">${esc(c.name)}</div>
+          <div class="chore-cycle">周期: ${formatCycleHours(c.cycleHours)}</div></div>
+        </div>
+        <div class="chore-right">
+          <span class="status-badge ${od?"overdue":"fresh"}">${od?"要実施 🚨":"ピカピカ 🟢"}</span>
+          <span class="chore-cr"><span class="star">⭐</span> +${c.credits}Cr</span>
+        </div>
+      </div>
+      <div>
+        <div class="gauge-row">
+          <span class="gauge-label">${od?"※ 期限が過ぎています":"状態ゲージ（新鮮さ）"}</span>
+          <span class="gauge-remaining ${od?"overdue":"fresh"}">${remainingText(c, t)}</span>
+        </div>
+        <div class="gauge-track"><div class="gauge-fill" style="width:${(c.lastCompletedTime?f*100:0).toFixed(1)}%;background:${pColor}"></div></div>
+      </div>
+      <button class="complete-btn ${cls}" data-cid="${esc(c.id)}" ${(!act||!od)?"disabled":""}>${od?"🔄":"✔"} ${label}</button>
+    </div>`;
+  }).join("");
+  list.querySelectorAll(".complete-btn").forEach(b =>
+    b.addEventListener("click", () => completeChore(b.dataset.cid)));
+}
+
+/* ---------- TAB 1 ---------- */
+function renderCashOutTab(){
+  const act = activeUser(), el = $("tab1");
+  if (!act){
+    el.innerHTML = '<div class="empty-state"><div class="big">👥</div><div class="msg">操作メンバーを選択してください。</div></div>';
+    return;
+  }
+  const presets = groupDoc?.cashOutPresets?.length ? groupDoc.cashOutPresets : [100,300,500,1000];
+  const sorted = [...cashOutRequests].sort((a,b) => b.timestamp - a.timestamp);
+  const payer = isPayer(act);
+  el.innerHTML = `
+    <div class="wallet-card">
+      <div class="wl">${esc(act.avatarEmoji)} ${esc(act.name)} のおさいふ</div>
+      <div class="wv">${act.currentCredits}<small> Cr</small></div>
+      <div class="wn">1 Cr = ${groupDoc?.creditToYen ?? 1}円で精算できます</div>
+    </div>
+    <div class="section-title"><span class="ic">📢</span>お小遣いをおねだりする</div>
+    <div class="amt-presets" id="amtPresets">
+      ${presets.map(a => `<button data-a="${a}" class="${cashoutAmount===a?"sel":""}">${a}</button>`).join("")}
+    </div>
+    <div class="amt-input-row">
+      <input type="number" id="amtInput" min="1" step="1" value="${cashoutAmount}" inputmode="numeric">
+      <button class="primary-btn" id="btnRequest" ${act.currentCredits < 1 ? "disabled" : ""}>おねだり申請</button>
+    </div>
+    <div class="hint">申請するとクレジットが差し引かれ、支払い担当の「支払いタスク」に入ります。取り消すと返金されます。</div>
+    <div class="section-title"><span class="ic">📋</span>申請リスト</div>
+    <div id="reqList" style="display:flex;flex-direction:column;gap:8px"></div>`;
+
+  el.querySelectorAll("#amtPresets button").forEach(b => b.addEventListener("click", () => {
+    cashoutAmount = +b.dataset.a; renderCashOutTab();
+  }));
+  $("amtInput").addEventListener("input", e => {
+    cashoutAmount = parseInt(e.target.value, 10) || 0;
+    el.querySelectorAll("#amtPresets button").forEach(b => b.classList.toggle("sel", +b.dataset.a === cashoutAmount));
+  });
+  $("btnRequest").addEventListener("click", () => requestCashOut(cashoutAmount));
+
+  const rl = $("reqList");
+  if (!sorted.length){
+    rl.innerHTML = '<div class="hint" style="text-align:center;padding:16px">まだ申請はありません。</div>';
+    return;
+  }
+  rl.innerHTML = sorted.map(r => {
+    const mine = r.userId === act.id;
+    let actions;
+    if (r.isApproved) actions = '<span class="approved-badge">✅ 支払済み</span>';
+    else {
+      const btns = [];
+      if (payer) btns.push(`<button class="small-btn green" data-act="approve" data-rid="${esc(r.id)}">払った！</button>`);
+      if (mine || payer) btns.push(`<button class="small-btn outline-red" data-act="cancel" data-rid="${esc(r.id)}">${mine?"取り消す":"却下"}</button>`);
+      actions = btns.join("") || '<span class="approved-badge" style="background:var(--chip-red-bg);color:var(--red)">⏳ 支払い待ち</span>';
+    }
+    return `<div class="req-row${r.isApproved?" approved":""}">
+      <div class="info"><div class="l1">${esc(r.userName)} — ${r.amount}Cr ➔ ${yen(r.amount)}円</div>
+      <div class="l2">${fmtDateTime(r.timestamp)}${r.isApproved?"":" ・ 支払い待ち"}</div></div>
+      <div class="req-actions">${actions}</div></div>`;
+  }).join("");
+  rl.querySelectorAll("button[data-act]").forEach(b => b.addEventListener("click", () => {
+    const req = cashOutRequests.find(r => r.id === b.dataset.rid);
+    if (!req) return;
+    if (b.dataset.act === "approve") approveCashOut(req);
+    else if (confirm(`${req.userName} の ${req.amount}Cr の申請を取り消しますか？（返金されます）`)) cancelCashOut(req);
+  }));
+}
+
+/* ---------- TAB 2 ---------- */
+function renderHistoryTab(){
+  const el = $("tab2");
+  const sorted = [...choreLogs].sort((a,b) => b.completedTime - a.completedTime);
+  const sums = {};
+  choreLogs.forEach(l => { sums[l.userName] = (sums[l.userName] || 0) + l.creditsEarned; });
+  const ranking = Object.entries(sums).sort((a,b) => b[1]-a[1]);
+
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="section-title" style="margin:0"><span class="ic">💖</span>がんばり履歴</div>
+      ${sorted.length ? '<button class="text-btn" id="btnClearLogs">履歴をクリア</button>' : ""}
+    </div>
+    ${ranking.length ? `<div class="summary-strip">${ranking.map(([n,cr],i) =>
+      `<span class="sum-chip">${["🥇","🥈","🥉"][i] || "🎖"} ${esc(n)} <b>${cr}Cr</b></span>`).join("")}</div>` : ""}
+    <div id="logList" style="display:flex;flex-direction:column;gap:8px"></div>
+    ${sorted.length >= logLimit ? '<button class="ghost-btn" id="btnMoreLogs">さらに読み込む</button>' : ""}`;
+
+  const ll = $("logList");
+  if (!sorted.length){
+    ll.innerHTML = `<div class="empty-state"><div class="big">🌱</div>
+      <div class="msg">まだ履歴がありません。<br>家事を完了するとここに記録されます。</div></div>`;
+  } else {
+    ll.innerHTML = sorted.map(l => {
+      const u = users.find(x => x.id === l.userId);
+      return `<div class="log-row"><div class="lav">${esc(u ? u.avatarEmoji : "🙂")}</div>
+        <div class="lbody"><div class="l1">${esc(l.userName)} が「${esc(l.choreName)}」を完了</div>
+        <div class="l2">${fmtDateTime(l.completedTime)} ・ ${relTime(l.completedTime)}</div></div>
+        <div class="lcr">+${l.creditsEarned}Cr</div></div>`;
+    }).join("");
+  }
+  const cb = $("btnClearLogs"); if (cb) cb.addEventListener("click", clearHistory);
+  const mb = $("btnMoreLogs"); if (mb) mb.addEventListener("click", () => {
+    logLimit += 50; startSync(); toast("さらに読み込みました");
+  });
+}
+
+/* ---------- TAB 3 ---------- */
+let newMemberEmoji = "🧑";
+function renderManageTab(){
+  const el = $("tab3");
+  const keep = {};
+  ["mcName","mcCredits","mmName","importArea"].forEach(id => { const n = $(id); if (n) keep[id] = n.value; });
+  const focusId = document.activeElement && el.contains(document.activeElement) ? document.activeElement.id : null;
+  const anon = auth.currentUser && auth.currentUser.isAnonymous;
+  const owner = groupDoc && groupDoc.members && groupDoc.members[uid] === "owner";
+  const cycleOpts = [[6,"6時間ごと"],[12,"12時間ごと"],[24,"1日ごと"],[48,"2日ごと"],[72,"3日ごと"],
+    [168,"1週間ごと"],[336,"2週間ごと"],[720,"1ヶ月ごと"]];
+
+  el.innerHTML = `
+    <div class="section-title"><span class="ic">👨‍👩‍👧</span>世帯と招待</div>
+    <div class="card form-grid">
+      <div class="status-line"><span class="status-dot${connected?" on":""}"></span>
+        ${connected ? `接続中: ${esc(groupDoc?.name || "わが家")}` : "オフライン（キャッシュ表示中）"}</div>
+      <div class="invite-box">
+        <div class="lbl">招待コード（ご家族に共有してください）</div>
+        <div class="code">${esc(groupDoc?.inviteCode || "--------")}</div>
+        <button class="mini-btn purple" id="btnCopyCode">コードをコピー</button>
+      </div>
+      <div class="hint">このコードを知っている人は世帯に参加できます。SNSなど公開の場には貼らないでください。</div>
+      <button class="ghost-btn" id="btnLeave">この端末を世帯から切り離す</button>
+    </div>
+
+    <div class="section-title"><span class="ic">🔐</span>アカウント</div>
+    <div class="card form-grid">
+      ${anon ? `<div class="badge-warn">⚠️ 現在は「おためしログイン」です。ブラウザのデータを消したり機種変更すると、この世帯に戻れなくなります。Googleアカウントを連携しておくと安全です。</div>
+        <button class="primary-btn" id="btnLinkGoogle">Googleアカウントを連携する</button>`
+        : `<div class="status-line"><span class="status-dot on"></span>Googleアカウント連携済み（${esc(auth.currentUser?.email || "")}）</div>`}
+      <button class="ghost-btn" id="btnSignOut">ログアウト</button>
+    </div>
+
+    <div class="section-title"><span class="ic">🧹</span>家事の管理</div>
+    <div class="card form-grid">
+      <input id="mcName" placeholder="家事の名前（例: トイレ掃除）" maxlength="20">
+      <div class="form-2col">
+        <select id="mcCycle">${cycleOpts.map(([v,l]) => `<option value="${v}"${v===24?" selected":""}>${l}</option>`).join("")}</select>
+        <input id="mcCredits" type="number" min="1" step="10" value="100" inputmode="numeric">
+      </div>
+      <button class="primary-btn" id="btnAddChore">＋ 家事を追加する</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${chores.map(c => `<div class="manage-item">
+        <div><div class="m1">${esc(c.name)}</div><div class="m2">${formatCycleHours(c.cycleHours)} ・ +${c.credits}Cr</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="mini-btn purple" data-edit="${esc(c.id)}">編集</button>
+          <button class="mini-btn red" data-delc="${esc(c.id)}">削除</button>
+        </div></div>`).join("") || '<div class="hint" style="text-align:center;padding:8px">家事はまだありません。</div>'}
+    </div>
+
+    <div class="section-title"><span class="ic">👥</span>メンバー管理</div>
+    <div class="card form-grid">
+      <input id="mmName" placeholder="メンバーの名前" maxlength="12">
+      <div class="emoji-grid" id="memberEmoji">
+        ${EMOJIS.map(e => `<button type="button" data-e="${e}" class="${e===newMemberEmoji?"sel":""}">${e}</button>`).join("")}
+      </div>
+      <button class="primary-btn" id="btnAddMember">＋ メンバーを追加する</button>
+      <div class="hint">スマホを持たない小さなお子さんは、ここで追加すれば共有端末から操作できます。自分のスマホを使う場合は招待コードで参加してもらってください。</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${users.map(u => `<div class="manage-item">
+        <div><div class="m1">${esc(u.avatarEmoji)} ${esc(u.name)}${isPayer(u)?" 💰":""}${u.uid===uid?" (あなた)":""}</div>
+        <div class="m2">保有: ${u.currentCredits} Cr</div></div>
+        ${u.uid===uid?"":`<button class="mini-btn red" data-delu="${esc(u.id)}">削除</button>`}
+      </div>`).join("") || '<div class="hint" style="text-align:center;padding:8px">メンバーがいません。</div>'}
+    </div>
+
+    <div class="section-title"><span class="ic">📤</span>バックアップ</div>
+    <div class="card form-grid">
+      <div class="hint">JSONで書き出し・読み込みができます。別の世帯へ引っ越すときにも使えます。</div>
+      <div class="btn-row">
+        <button class="primary-btn" id="btnExport">コピー</button>
+        <button class="outline-btn" id="btnDownload">ファイル保存</button>
+      </div>
+      <textarea class="json-area" id="importArea" placeholder="ここにJSONを貼り付けてインポート"></textarea>
+      <button class="outline-btn" id="btnImport">インポートする</button>
+      ${owner ? "" : '<div class="hint">※ インポートは世帯のデータを追加します。実行前にバックアップを取っておくと安心です。</div>'}
+    </div>
+
+    <div class="section-title"><span class="ic">⏰</span>時間シミュレーション</div>
+    <div class="card form-grid">
+      <div class="hint">現在のオフセット: <b>${timeOffsetMillis===0 ? "なし（実時間）" : "+"+Math.round(timeOffsetMillis/3600000)+"時間"}</b>　この端末だけに適用され、ご家族には共有されません。</div>
+      <button class="outline-btn" id="btnOpenTT">時間を進めるパネルを開く</button>
+    </div>`;
+
+  Object.entries(keep).forEach(([id,v]) => { const n = $(id); if (n) n.value = v; });
+  if (focusId && $(focusId)) $(focusId).focus();
+
+  $("btnCopyCode").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(groupDoc?.inviteCode || ""); toast("招待コードをコピーしました"); }
+    catch(e){ toast("コピーできませんでした。手入力でお伝えください。"); }
+  });
+  $("btnLeave").addEventListener("click", leaveDevice);
+  const lg = $("btnLinkGoogle"); if (lg) lg.addEventListener("click", linkGoogle);
+  $("btnSignOut").addEventListener("click", doSignOut);
+
+  $("btnAddChore").addEventListener("click", () => {
+    const name = $("mcName").value.trim(), credits = parseInt($("mcCredits").value, 10);
+    if (!name){ toast("家事の名前を入力してください"); return; }
+    if (!(credits > 0)){ toast("クレジットは1以上にしてください"); return; }
+    addChore(name, parseInt($("mcCycle").value, 10), credits);
+    $("mcName").value = "";
+  });
+  el.querySelectorAll("[data-delc]").forEach(b => b.addEventListener("click", () => {
+    const c = chores.find(x => x.id === b.dataset.delc); if (c) deleteChore(c);
+  }));
+  el.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => {
+    const c = chores.find(x => x.id === b.dataset.edit); if (c) openEditChore(c, cycleOpts);
+  }));
+  const meGrid = $("memberEmoji");
+  meGrid.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    newMemberEmoji = b.dataset.e;
+    meGrid.querySelectorAll("button").forEach(x => x.classList.toggle("sel", x.dataset.e === newMemberEmoji));
+  }));
+  $("btnAddMember").addEventListener("click", () => {
+    const name = $("mmName").value.trim();
+    if (!name){ toast("メンバーの名前を入力してください"); return; }
+    addMember(name, newMemberEmoji);
+    $("mmName").value = "";
+  });
+  el.querySelectorAll("[data-delu]").forEach(b => b.addEventListener("click", () => {
+    const u = users.find(x => x.id === b.dataset.delu); if (u) deleteMember(u);
+  }));
+  $("btnExport").addEventListener("click", async () => {
+    const json = exportJson();
+    $("importArea").value = json;
+    try { await navigator.clipboard.writeText(json); toast("JSONをコピーしました"); }
+    catch(e){ toast("下の欄に出力しました"); }
+  });
+  $("btnDownload").addEventListener("click", () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([exportJson()], { type:"application/json" }));
+    a.download = `homequest-${new Date().toISOString().slice(0,10)}.json`;
+    a.click(); URL.revokeObjectURL(a.href);
+  });
+  $("btnImport").addEventListener("click", async () => {
+    const text = $("importArea").value.trim();
+    if (!text){ toast("JSONを貼り付けてください"); return; }
+    if (!confirm("インポートすると世帯にデータが追加されます。よろしいですか？")) return;
+    toast(await importJson(text) ? "インポートが完了しました 🎉" : "インポートに失敗しました");
+  });
+  $("btnOpenTT").addEventListener("click", openTimeTravel);
+}
+
+function openEditChore(chore, cycleOpts){
+  const ov = $("editOverlay");
+  const known = cycleOpts.some(([v]) => v === chore.cycleHours);
+  $("editDialog").innerHTML = `<h3>家事を編集</h3>
+    <div class="form-grid">
+      <input id="ecName" value="${esc(chore.name)}" maxlength="20">
+      <div class="form-2col">
+        <select id="ecCycle">
+          ${cycleOpts.map(([v,l]) => `<option value="${v}"${v===chore.cycleHours?" selected":""}>${l}</option>`).join("")}
+          ${known ? "" : `<option value="${chore.cycleHours}" selected>${formatCycleHours(chore.cycleHours)}</option>`}
+        </select>
+        <input id="ecCredits" type="number" min="1" value="${chore.credits}" inputmode="numeric">
+      </div>
+      <button class="primary-btn" id="ecSave">保存する</button>
+      <button class="ghost-btn" id="ecCancel">キャンセル</button>
+    </div>`;
+  ov.classList.add("show");
+  $("ecSave").addEventListener("click", () => {
+    const name = $("ecName").value.trim(), credits = parseInt($("ecCredits").value, 10);
+    if (!name || !(credits > 0)){ toast("入力内容を確認してください"); return; }
+    updateChore({ ...chore, name, cycleHours: parseInt($("ecCycle").value, 10), credits });
+    ov.classList.remove("show");
+    toast("家事を更新しました");
+  });
+  $("ecCancel").addEventListener("click", () => ov.classList.remove("show"));
+}
+
+/* ---------- お祝い演出 ---------- */
+function showCelebration(chore, user){
+  const ov = $("celebOverlay");
+  const coins = [15,45,75,105,135,195,225,255,285,315].map((a,i) => {
+    const rad = a*Math.PI/180, dist = 70 + (i%3)*22;
+    return `<span class="coin" style="--cx:${(Math.cos(rad)*dist).toFixed(0)}px;--cy:${(Math.sin(rad)*dist-40).toFixed(0)}px;--cs:${(1+(i%2)*.4).toFixed(1)};animation-delay:${i*30}ms">🪙</span>`;
+  }).join("");
+  $("celebDialog").innerHTML = `<h3>🎉 タスク完了！ 🎉</h3>
+    <div class="celeb-avatar">${esc(user.avatarEmoji)}</div>
+    <div class="coin-stage">${coins}
+      <div class="cr-big">+${chore.credits} Cr</div><div class="cr-sub">コイン獲得！</div></div>
+    <div class="celeb-msg">【${esc(user.name)}】が<br>『${esc(chore.name)}』を完了しました！</div>
+    <button class="primary-btn" id="celebClose">やったね！閉じる</button>`;
+  ov.classList.add("show");
+  $("celebClose").addEventListener("click", () => ov.classList.remove("show"));
+  clearTimeout(ov._t);
+  ov._t = setTimeout(() => ov.classList.remove("show"), 4000);
+}
+
+/* ---------- タイムトラベル ---------- */
+function openTimeTravel(){ updateTTInfo(); $("ttOverlay").classList.add("show"); }
+function updateTTInfo(){
+  $("ttInfo").innerHTML = `現在の仮想日時: ${fmtDateTime(now())}<br>オフセット: ${
+    timeOffsetMillis === 0 ? "なし" : "+"+Math.round(timeOffsetMillis/3600000)+"時間"}（この端末のみ）`;
+}
+function setOffset(ms){
+  timeOffsetMillis = ms;
+  store.set("hq_time_offset", String(ms));
+  updateTTInfo(); renderTimeBanner();
+  if (selectedTab === 0) renderBoardTab();
+  if (selectedTab === 3) renderManageTab();
+}
+$("ttOverlay").querySelectorAll(".tt-grid button").forEach(b =>
+  b.addEventListener("click", () => setOffset(timeOffsetMillis + (+b.dataset.h)*3600000)));
+$("ttReset").addEventListener("click", () => { setOffset(0); toast("時間をリセットしました"); });
+$("ttClose").addEventListener("click", () => $("ttOverlay").classList.remove("show"));
+$("btnTimeTravel").addEventListener("click", openTimeTravel);
+$("timeBanner").addEventListener("click", openTimeTravel);
+
+/* ---------- タブ ---------- */
+$("bottomNav").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+  selectedTab = +b.dataset.tab;
+  $("bottomNav").querySelectorAll("button").forEach(x => x.classList.toggle("sel", x === b));
+  document.querySelectorAll(".tab-page").forEach((p,i) => p.classList.toggle("active", i === selectedTab));
+  renderAll();
+}));
+["ttOverlay","celebOverlay","editOverlay"].forEach(id =>
+  $(id).addEventListener("click", e => { if (e.target === $(id)) $(id).classList.remove("show"); }));
+
+setInterval(() => {
+  if (!groupId) return;
+  renderTimeBanner();
+  if (selectedTab === 0) renderBoardTab();
+}, 1000);
+
+/* =========================================================
+   起動
+   ========================================================= */
+function enterApp(){
+  $("gate").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  startSync();
+  renderAll();
+}
+
+gateLoading("接続しています…");
+onAuthStateChanged(auth, async user => {
+  if (!user){
+    try { await signInAnonymously(auth); }
+    catch(e){ gateError("認証に失敗しました。\n" + friendlyError(e)); }
+    return;
+  }
+  uid = user.uid;
+  if (!groupId){ showWelcome(); return; }
+  gateLoading("世帯データを読み込んでいます…");
+  try {
+    const snap = await getDoc(doc(db, "groups", groupId));
+    if (!snap.exists() || !snap.data().members || !(uid in snap.data().members)){
+      store.del("hq_group_id");
+      groupId = null;
+      gateError("この端末は世帯のメンバーではありません。\n招待コードで参加し直してください。", "招待コードで参加", showJoinForm);
+      return;
+    }
+    groupDoc = snap.data();
+    enterApp();
+  } catch(e){
+    gateError("読み込みに失敗しました。\n" + friendlyError(e), "再試行", () => location.reload());
+  }
+});
+</script>
+</body>
+</html>
