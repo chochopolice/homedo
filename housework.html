@@ -82,8 +82,10 @@ input,select,textarea{font-family:inherit;font-size:14px}
   overflow:hidden;text-overflow:ellipsis}
 .top-actions{display:flex;gap:6px;flex:0 0 auto}
 .icon-btn{width:36px;height:36px;border-radius:10px;background:var(--beige);
-  display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--primary)}
+  display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--primary);
+  text-decoration:none;cursor:pointer}
 .icon-btn:active{transform:scale(.94)}
+.help-link{color:var(--primary);font-weight:700;text-decoration:underline}
 
 .user-switcher{padding:2px 16px 4px}
 .user-switcher .label{font-size:11px;font-weight:700;color:var(--grey);margin-bottom:6px}
@@ -311,6 +313,10 @@ nav button.sel .nlbl{color:var(--primary)}
           <div class="sub" id="groupNameLabel">—</div>
         </div>
       </div>
+      <div class="top-actions">
+        <a class="icon-btn" href="manual.html" target="_blank" rel="noopener"
+           title="使い方ガイド" aria-label="使い方ガイドを開く">❓</a>
+      </div>
     </header>
 
     <section class="user-switcher">
@@ -495,7 +501,9 @@ function showWelcome(){
       <button class="primary-btn" id="goCreate">世帯をつくる</button>
       <button class="outline-btn" id="goJoin">招待コードで参加する</button>
     </div>
-    <div class="hint" style="text-align:center">データはこの端末に紐づいて保存されます。<br>参加後にGoogleログインを設定すると、機種変更しても引き継げます。</div>`;
+    <div class="hint" style="text-align:center">データはこの端末に紐づいて保存されます。<br>参加後にGoogleログインを設定すると、機種変更しても引き継げます。</div>
+    <div class="hint" style="text-align:center">はじめての方は
+      <a class="help-link" href="manual.html" target="_blank" rel="noopener">使い方ガイド</a> をご覧ください。</div>`;
   $("goCreate").addEventListener("click", showCreateForm);
   $("goJoin").addEventListener("click", showJoinForm);
 }
@@ -1171,6 +1179,12 @@ function renderManageTab(){
       <textarea class="json-area" id="importArea" placeholder="ここにJSONを貼り付けてインポート"></textarea>
       <button class="outline-btn" id="btnImport">インポートする</button>
       ${owner ? "" : '<div class="hint">※ インポートは世帯のデータを追加します。実行前にバックアップを取っておくと安心です。</div>'}
+    </div>
+
+    <div class="section-title"><span class="ic">📖</span>ヘルプ</div>
+    <div class="card form-grid">
+      <div class="hint">操作方法や画面の見かたを、実際の画面イメージ付きで説明しています。</div>
+      <a class="outline-btn" href="manual.html" target="_blank" rel="noopener">使い方ガイドを開く</a>
     </div>
 `;
 
