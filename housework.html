@@ -104,12 +104,6 @@ input,select,textarea{font-family:inherit;font-size:14px}
   border-radius:6px;padding:1px 4px}
 .no-members{font-size:13px;color:var(--red);padding:4px 0}
 
-.time-banner{margin:2px 16px;background:rgba(103,80,164,.08);border-radius:10px;display:flex;
-  align-items:center;justify-content:space-between;padding:8px 12px;width:calc(100% - 32px);text-align:left}
-.time-banner .t{font-size:12px;font-weight:700}
-.time-banner .go{font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap}
-.time-banner.offset-active{background:rgba(255,183,3,.2)}
-
 main{flex:1;padding:8px 16px 92px;overflow-y:auto}
 .tab-page{display:none;flex-direction:column;gap:10px}
 .tab-page.active{display:flex}
@@ -266,10 +260,6 @@ nav button.sel .nlbl{color:var(--primary)}
 .dialog{background:var(--card);border-radius:24px;padding:24px;width:100%;max-width:400px;
   display:flex;flex-direction:column;gap:14px;max-height:88dvh;overflow-y:auto}
 .dialog h3{font-size:17px;font-weight:900;color:var(--primary);text-align:center}
-.tt-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.tt-grid button{padding:12px 4px;border-radius:12px;background:var(--beige);color:var(--primary);
-  font-weight:800;font-size:13px}
-.offset-info{font-size:12px;color:var(--grey);text-align:center;font-weight:700;line-height:1.7}
 
 .celebrate{align-items:center;text-align:center;position:relative;overflow:hidden}
 .celeb-avatar{width:100px;height:100px;border-radius:50%;background:var(--beige);
@@ -321,20 +311,12 @@ nav button.sel .nlbl{color:var(--primary)}
           <div class="sub" id="groupNameLabel">—</div>
         </div>
       </div>
-      <div class="top-actions">
-        <button class="icon-btn" id="btnTimeTravel" title="時間を進める" aria-label="時間を進める">⏰</button>
-      </div>
     </header>
 
     <section class="user-switcher">
       <div class="label">👥 操作メンバー (タップして選択)</div>
       <div class="user-row" id="userRow"></div>
     </section>
-
-    <button class="time-banner" id="timeBanner">
-      <span class="t" id="timeBannerText">⏰ 仮想日時: --</span>
-      <span class="go">時間を進める ➔</span>
-    </button>
 
     <main>
       <div class="tab-page active" id="tab0">
@@ -354,17 +336,6 @@ nav button.sel .nlbl{color:var(--primary)}
       <button data-tab="3"><span class="nic">⚙️</span><span class="nlbl">管理・設定</span></button>
     </nav>
   </div>
-
-  <div class="overlay" id="ttOverlay"><div class="dialog">
-    <h3>⏰ 時間シミュレーション</h3>
-    <div class="offset-info" id="ttInfo"></div>
-    <div class="tt-grid">
-      <button data-h="1">+1時間</button><button data-h="6">+6時間</button><button data-h="12">+12時間</button>
-      <button data-h="24">+1日</button><button data-h="72">+3日</button><button data-h="168">+1週間</button>
-    </div>
-    <button class="outline-btn" id="ttReset">オフセットをリセット（現在時刻に戻す）</button>
-    <button class="primary-btn" id="ttClose">閉じる</button>
-  </div></div>
 
   <div class="overlay" id="celebOverlay"><div class="dialog celebrate" id="celebDialog"></div></div>
   <div class="overlay" id="editOverlay"><div class="dialog" id="editDialog"></div></div>
@@ -416,7 +387,6 @@ let groupId = store.get("hq_group_id", null);
 let groupDoc = null;
 let users = [], chores = [], choreLogs = [], cashOutRequests = [];
 let activeUserId = store.get("hq_active_user", null);
-let timeOffsetMillis = parseInt(store.get("hq_time_offset", "0"), 10) || 0;
 let selectedTab = 0, boardFilter = 0, cashoutAmount = 100;
 let unsubs = [];
 let connected = false;
@@ -424,7 +394,7 @@ let logLimit = 50;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const now = () => Date.now() + timeOffsetMillis;
+const now = () => Date.now();
 
 /* 衝突しないID（複数人が同時に操作しても安全） */
 function newId(){
@@ -916,7 +886,6 @@ async function importJson(text){
 function renderAll(){
   if (!groupId) return;
   renderUserSwitcher();
-  renderTimeBanner();
   if (selectedTab === 0) renderBoardTab();
   else if (selectedTab === 1) renderCashOutTab();
   else if (selectedTab === 2) renderHistoryTab();
@@ -945,11 +914,6 @@ function renderUserSwitcher(){
     store.set("hq_active_user", activeUserId);
     renderAll();
   }));
-}
-
-function renderTimeBanner(){
-  $("timeBannerText").textContent = `⏰ 仮想日時: ${fmtDateTime(now())}`;
-  $("timeBanner").classList.toggle("offset-active", timeOffsetMillis !== 0);
 }
 
 /* ---------- TAB 0 ---------- */
@@ -1208,12 +1172,7 @@ function renderManageTab(){
       <button class="outline-btn" id="btnImport">インポートする</button>
       ${owner ? "" : '<div class="hint">※ インポートは世帯のデータを追加します。実行前にバックアップを取っておくと安心です。</div>'}
     </div>
-
-    <div class="section-title"><span class="ic">⏰</span>時間シミュレーション</div>
-    <div class="card form-grid">
-      <div class="hint">現在のオフセット: <b>${timeOffsetMillis===0 ? "なし（実時間）" : "+"+Math.round(timeOffsetMillis/3600000)+"時間"}</b>　この端末だけに適用され、ご家族には共有されません。</div>
-      <button class="outline-btn" id="btnOpenTT">時間を進めるパネルを開く</button>
-    </div>`;
+`;
 
   Object.entries(keep).forEach(([id,v]) => { const n = $(id); if (n) n.value = v; });
   if (focusId && $(focusId)) $(focusId).focus();
@@ -1271,7 +1230,6 @@ function renderManageTab(){
     if (!confirm("インポートすると世帯にデータが追加されます。よろしいですか？")) return;
     toast(await importJson(text) ? "インポートが完了しました 🎉" : "インポートに失敗しました");
   });
-  $("btnOpenTT").addEventListener("click", openTimeTravel);
 }
 
 function openEditChore(chore, cycleOpts){
@@ -1320,26 +1278,6 @@ function showCelebration(chore, user){
   ov._t = setTimeout(() => ov.classList.remove("show"), 4000);
 }
 
-/* ---------- タイムトラベル ---------- */
-function openTimeTravel(){ updateTTInfo(); $("ttOverlay").classList.add("show"); }
-function updateTTInfo(){
-  $("ttInfo").innerHTML = `現在の仮想日時: ${fmtDateTime(now())}<br>オフセット: ${
-    timeOffsetMillis === 0 ? "なし" : "+"+Math.round(timeOffsetMillis/3600000)+"時間"}（この端末のみ）`;
-}
-function setOffset(ms){
-  timeOffsetMillis = ms;
-  store.set("hq_time_offset", String(ms));
-  updateTTInfo(); renderTimeBanner();
-  if (selectedTab === 0) renderBoardTab();
-  if (selectedTab === 3) renderManageTab();
-}
-$("ttOverlay").querySelectorAll(".tt-grid button").forEach(b =>
-  b.addEventListener("click", () => setOffset(timeOffsetMillis + (+b.dataset.h)*3600000)));
-$("ttReset").addEventListener("click", () => { setOffset(0); toast("時間をリセットしました"); });
-$("ttClose").addEventListener("click", () => $("ttOverlay").classList.remove("show"));
-$("btnTimeTravel").addEventListener("click", openTimeTravel);
-$("timeBanner").addEventListener("click", openTimeTravel);
-
 /* ---------- タブ ---------- */
 $("bottomNav").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
   selectedTab = +b.dataset.tab;
@@ -1347,14 +1285,13 @@ $("bottomNav").querySelectorAll("button").forEach(b => b.addEventListener("click
   document.querySelectorAll(".tab-page").forEach((p,i) => p.classList.toggle("active", i === selectedTab));
   renderAll();
 }));
-["ttOverlay","celebOverlay","editOverlay"].forEach(id =>
+["celebOverlay","editOverlay"].forEach(id =>
   $(id).addEventListener("click", e => { if (e.target === $(id)) $(id).classList.remove("show"); }));
 
 setInterval(() => {
   if (!groupId) return;
-  renderTimeBanner();
   if (selectedTab === 0) renderBoardTab();
-}, 1000);
+}, 60000);
 
 /* =========================================================
    起動
