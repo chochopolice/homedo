@@ -1,0 +1,19 @@
+{
+  "id": "/homedo/housework.html",
+  "name": "HomeQuest - 家族の家事とお小遣い",
+  "short_name": "HomeQuest",
+  "description": "家族で家事を分担し、こなすたびにクレジットが貯まる。貯めたクレジットはお小遣いに交換できます。",
+  "lang": "ja",
+  "dir": "ltr",
+  "start_url": "housework.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F7F2FA",
+  "theme_color": "#6750A4",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

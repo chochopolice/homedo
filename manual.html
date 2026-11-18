@@ -288,7 +288,7 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
     <li><a href="#s4">お小遣い精算 — 貯めて、もらう</a></li>
     <li><a href="#s5">がんばり履歴</a></li>
     <li><a href="#s6">管理・設定</a></li>
-    <li><a href="#s7">機種変更・引き継ぎ</a></li>
+    <li><a href="#s7">機種変更・データを消したとき</a></li>
     <li><a href="#s8">よくある質問</a></li>
   </ol>
 </div>
@@ -313,7 +313,7 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
             <div class="pbtn">世帯をつくる</div>
             <div class="obtn">招待コードで参加する</div>
           </div>
-          <div class="hintx" style="text-align:center">データはこの端末に紐づいて保存されます。<br>参加後にGoogleログインを設定すると、機種変更しても引き継げます。</div>
+          <div class="hintx" style="text-align:center">ログインは不要です。参加の情報はこの端末に保存されます。<br>機種変更やアプリのデータ削除をしたときの引き継ぎには対応していません。</div>
         </div>
       </div></div>
       <div class="caption">最初の画面</div>
@@ -657,17 +657,15 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
 <!-- ============ 6 ============ -->
 <section id="s6">
   <h2><span class="n">6</span>管理・設定</h2>
-  <p>家事の追加・編集、メンバーの追加、アカウントの設定はすべてこのタブで行います。</p>
+  <p>家事の追加・編集、メンバーの追加、招待コードの確認はすべてこのタブで行います。</p>
 
   <div class="shots">
     <div class="shot">
       <div class="phone"><div class="screen">
         <div class="body" style="padding-top:14px">
-          <div class="stitle"><span class="ic">🔐</span>アカウント</div>
+          <div class="stitle"><span class="ic">📱</span>この端末について</div>
           <div class="mcard">
-            <div class="warnb">⚠️ 現在は「おためしログイン」です。ブラウザのデータを消したり機種変更すると、この世帯に戻れなくなります。Googleアカウントを連携しておくと安全です。</div>
-            <div class="pbtn">Googleアカウントを連携する</div>
-            <div class="gbtn">ログアウト</div>
+            <div class="warnb">⚠️ 世帯への参加の情報はこの端末に保存されています。機種変更・アプリの削除・データの削除をすると、この端末の参加状態は元に戻せません（引き継ぎ機能はありません）。</div>
           </div>
           <div class="stitle"><span class="ic">🧹</span>家事の管理</div>
           <div class="mcard">
@@ -717,21 +715,20 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
 
 <!-- ============ 7 ============ -->
 <section id="s7">
-  <h2><span class="n">7</span>機種変更・引き継ぎ</h2>
-  <div class="warn">最初にアプリを開いたときは<strong>「おためしログイン」</strong>の状態です。この状態でブラウザの履歴やサイトデータを消すと、<strong>世帯に戻れなくなります</strong>。使い始めたら早めにGoogleアカウントを連携してください。</div>
+  <h2><span class="n">7</span>機種変更・データを消したとき</h2>
+  <div class="warn">HomeQuest には<strong>ログインがありません</strong>。世帯に参加している情報はその端末に保存されるため、<strong>機種変更・アプリの削除・データの削除・端末の初期化</strong>をすると、その端末は世帯から外れた状態になります。<strong>引き継ぎ機能はありません</strong>（<a href="terms.html">利用規約</a>第2条）。</div>
 
-  <h3>Googleアカウントを連携する</h3>
+  <p>ただし、家事・クレジット・履歴などの<strong>世帯のデータはサーバーに残っています</strong>。次の方法で使い続けられます。</p>
+
+  <h3>新しい端末で使い始めるとき</h3>
   <ol class="steps">
-    <li>管理・設定タブを開く</li>
-    <li>「アカウント」の<strong>「Googleアカウントを連携する」</strong>を押す</li>
-    <li>いつも使っているGoogleアカウントを選ぶ</li>
-    <li>警告バナーが消え、「連携済み」と表示されれば完了</li>
+    <li>ご家族の端末の「管理・設定」タブで<strong>招待コード</strong>を確認する</li>
+    <li>新しい端末でアプリを開き、「招待コードで参加する」から参加する（このとき新しいメンバーが1人追加されます）</li>
+    <li>画面上部の「操作メンバー」で<strong>以前の自分</strong>を選ぶ。クレジットも💰（支払い担当）もそのまま使えます</li>
+    <li>参加時に追加された新しいメンバーは、ご家族の端末の「管理・設定」→ メンバー一覧から削除してください</li>
   </ol>
 
-  <h3>新しい端末に移すとき</h3>
-  <p>連携が済んでいれば、新しい端末でアプリを開いて同じGoogleアカウントでログインするだけです。連携していない場合は、ご家族の誰かに<strong>招待コード</strong>を教えてもらい、参加し直してください。データは世帯に残っているので消えません。</p>
-
-  <div class="note">「この端末を世帯から切り離す」を押しても、家事やクレジットのデータは消えません。招待コードでいつでも戻れます。</div>
+  <div class="note">大事なデータは「管理・設定」→「バックアップ」で書き出しておくと安心です。「この端末を世帯から切り離す」を押しても、世帯のデータは消えません。</div>
 </section>
 
 <!-- ============ 8 ============ -->
@@ -748,7 +745,7 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
     <div class="a">完了の取り消し機能はありません。管理・設定タブでその家事を「編集」して開き直すか、次の周期を待ってください。</div></div>
 
   <div class="faq"><div class="q">「払った！」ボタンが出てきません</div>
-    <div class="a">このボタンは世帯をつくった人（支払い担当）にだけ表示されます。ほかの人の画面には出ません。</div></div>
+    <div class="a">このボタンは、操作メンバーに<strong>💰（支払い担当＝世帯をつくった人）</strong>を選んでいるときだけ表示されます。</div></div>
 
   <div class="faq"><div class="q">クレジットの金額を1円以外にできますか</div>
     <div class="a">できます。ただし現在は画面から変更できないため、設定の変更が必要です。管理者にご相談ください。</div></div>
