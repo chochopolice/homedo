@@ -1,28 +1,35 @@
 /* HomeQuest service worker
  * - 画面（HTML）はネット優先：つながる時は常に最新、圏外の時だけ保存済みを表示
- *   → housework.html を更新すれば、アプリ版にも次回起動時に反映されます
+ *   → index.html を更新すれば、アプリ版にも次回起動時に反映されます
+ * - サーバーがエラー（サイト停止・障害など）を返したときも、保存済みの画面で動かす
+ *   （データは Firebase に直接つながるので、画面さえ出せば使える）
  * - アイコン等はキャッシュを先に返し、裏で更新
  * - Firebase のSDK（バージョン付きURL）とフォントはキャッシュ
  * - Firestore / ログイン等の通信には一切手を出さない
  * 中身を大きく変えたときは CACHE の番号を上げてください。
  */
-const CACHE = "homequest-v1";
+const CACHE = "homequest-v4";
+/* 画面の土台：一般公開版（Netlify）はトップ、家族用（GitHub Pages）は housework.html */
+const SHELL = self.location.hostname === "chochopolice.github.io" ? "housework.html" : "./";
 const PRECACHE = [
-  "housework.html",
+  SHELL,
   "manual.html",
   "privacy.html",
   "delete-account.html",
   "terms.html",
   "manifest.webmanifest",
-  "icons/icon-192.png",
-  "icons/icon-512.png"
+  "icons/icon-192.png"
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE).then((cache) =>
       // 1件失敗してもインストール自体は止めない
-      Promise.all(PRECACHE.map((url) => cache.add(url).catch(() => {})))
+      Promise.all(PRECACHE.map((url) =>
+        fetch(url, { cache: "no-cache" })
+          .then((res) => res.ok ? clean(res).then((r) => cache.put(url, r)) : null)
+          .catch(() => {})
+      ))
     ).then(() => self.skipWaiting())
   );
 });
@@ -40,19 +47,39 @@ function isHtml(request) {
     (request.headers.get("accept") || "").includes("text/html");
 }
 
+/* リダイレクトを経た応答は、画面遷移の応答に使うとエラーになるので作り直して保存する */
+async function clean(res) {
+  if (!res.redirected) return res;
+  const body = await res.blob();
+  return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
+}
+
+async function fromCache(cache, request) {
+  return (await cache.match(request, { ignoreSearch: true })) ||
+         (request.mode === "navigate" ? await cache.match(SHELL) : undefined);
+}
+
 async function networkFirst(request) {
   const cache = await caches.open(CACHE);
+  let res;
   try {
-    const res = await fetch(request);
-    if (res && res.ok) cache.put(request, res.clone());
-    return res;
+    res = await fetch(request);
   } catch (e) {
-    const hit = await cache.match(request, { ignoreSearch: true });
+    const hit = await fromCache(cache, request);
     if (hit) return hit;
-    const shell = await cache.match("housework.html");
-    if (shell) return shell;
     throw e;
   }
+  if (res.ok) {
+    const copy = await clean(res.clone());
+    cache.put(request, copy);
+    return res;
+  }
+  // 404 以外のエラー（サイトの一時停止・障害など）は、保存済みの画面があればそちらを出す
+  if (res.type !== "opaqueredirect" && res.status !== 404) {
+    const hit = await fromCache(cache, request);
+    if (hit) return hit;
+  }
+  return res;
 }
 
 async function cacheFirst(request) {
@@ -80,7 +107,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
 
   if (url.origin === self.location.origin) {
-    // このフォルダ（/homedo/）の中だけ扱う
+    // このサイトの中（sw.js と同じ階層以下）だけ扱う
     if (!url.pathname.startsWith(new URL("./", self.location).pathname)) return;
     event.respondWith(isHtml(req) ? networkFirst(req) : staleWhileRevalidate(req));
     return;

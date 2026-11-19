@@ -7,7 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<script>if (location.hostname === "chochopolice.github.io") document.documentElement.classList.add("family");</script>
 <style>
+.family-only{display:none}
+html.family .family-only{display:revert}
+html.family .paid-only{display:none}
 :root{
   --primary:#6750A4; --mint:#386A20; --gold:#FFB703;
   --bg:#F7F2FA; --text:#1D1B20; --card:#FFFFFF; --beige:#EADDFF;
@@ -56,6 +60,23 @@ strong{font-weight:800}
 code{background:var(--done-bg);border-radius:5px;padding:1px 6px;font-size:13px;
   font-family:ui-monospace,monospace}
 .caption{font-size:12px;color:var(--grey);text-align:center;font-weight:700;margin-top:8px}
+.cover .mark img{width:78px;height:78px;border-radius:22px;display:block}
+.cover .mark.img{background:none}
+.ios{background:var(--card);border:2px solid var(--primary);border-radius:20px;padding:22px 24px;margin-bottom:26px}
+.ios h2{font-size:18px;font-weight:900;color:var(--primary);margin-bottom:8px}
+.ios p{font-size:14px}
+.urlbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg);border-radius:12px;padding:12px 14px;margin:12px 0}
+.urlbox .u{font-family:ui-monospace,monospace;font-size:15px;font-weight:800;word-break:break-all;flex:1 1 220px}
+.pill{display:inline-block;border:none;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:800;
+  cursor:pointer;text-decoration:none;font-family:inherit}
+.pill.pri{background:var(--primary);color:#fff}
+.pill.line{background:#06C755;color:#fff}
+.pill.out{background:var(--card);color:var(--primary);border:1.5px solid var(--primary)}
+.contact{display:grid;gap:12px;margin:12px 0}
+.contact a{display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:14px;padding:14px 16px;
+  text-decoration:none;color:var(--text);font-weight:800;font-size:14px}
+.contact .ic{font-size:22px}
+.contact small{display:block;font-weight:500;color:var(--grey);font-size:12px}
 
 /* ---- phone mock frame ---- */
 .shots{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;margin:20px 0 6px}
@@ -272,11 +293,23 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
 <div class="doc">
 
 <div class="cover">
-  <div class="mark">🏠</div>
+  <div class="mark img"><img src="icons/icon-192.png" alt="HomeQuest"></div>
   <div>
     <h1>HomeQuest 使い方ガイド</h1>
     <div class="lead">家族で家事を分担して、こなすたびにクレジットが貯まる。<br>貯めたクレジットはお小遣いに交換できます。</div>
   </div>
+</div>
+
+<div class="ios" id="iphone">
+  <h2>📱 iPhoneをお使いの方へ</h2>
+  <p>HomeQuest の <strong>iPhone 用アプリ（App Store）はありません</strong>。iPhone では <strong>Web 版</strong>を使います。Safari で下のアドレスを開いて「ホーム画面に追加」すると、アプリと同じようにアイコンから使えます（手順は <a href="#s0">0. iPhoneで使う</a>）。</p>
+  <div class="urlbox">
+    <span class="u site-url">https://homedolist.netlify.app/</span>
+    <button class="pill pri" type="button" id="btnCopyUrl">アドレスをコピー</button>
+    <a class="pill line" href="https://line.me/R/share?text=" id="btnLineUrl" target="_blank" rel="noopener">LINEで送る</a>
+  </div>
+  <p>Android の家族と<strong>同じ世帯</strong>に参加して、家事・クレジット・お小遣いをそのまま共有できます。参加には家族から<strong>招待コード</strong>を教えてもらってください。</p>
+  <div class="note">リマインダー通知とホーム画面のウィジェットは Android アプリ版だけの機能です。それ以外は iPhone でも同じように使えます。</div>
 </div>
 
 <div class="toc">
@@ -291,6 +324,7 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
     <li><a href="#s6">管理・設定</a></li>
     <li><a href="#s7">機種変更・データを消したとき</a></li>
     <li><a href="#s8">よくある質問</a></li>
+    <li><a href="#s9">お問い合わせ</a></li>
   </ol>
 </div>
 
@@ -299,10 +333,10 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
   <h2><span class="n">0</span>iPhoneで使う（ホーム画面に追加）</h2>
   <p>iPhone では、Safari からホーム画面に追加すると、アプリと同じようにアイコンから全画面で使えます。App Store からのインストールは不要です。</p>
   <ol class="steps">
-    <li>iPhone の <strong>Safari</strong> で <strong>https://chochopolice.github.io/homedo/housework.html</strong> を開く</li>
+    <li>iPhone の <strong>Safari</strong> で <strong class="site-url">https://homedolist.netlify.app/</strong> を開く（Chrome など他のブラウザでは「ホーム画面に追加」が出ないことがあります）</li>
     <li>画面の <strong>共有ボタン（□に↑）</strong> を押して、<strong>「ホーム画面に追加」</strong> を選ぶ（見つからないときはメニューを下までスクロール）</li>
     <li>名前が「HomeQuest」になっていることを確認して <strong>「追加」</strong></li>
-    <li>ホーム画面にできた <strong>HomeQuest のアイコン</strong> から開いて、「世帯をつくる」または「招待コードで参加する」</li>
+    <li>ホーム画面にできた <strong>HomeQuest のアイコン</strong> から開いて、「世帯をつくる」または「招待コードで参加する」（家族がすでに使っている場合は、家族から招待コードを教えてもらう）</li>
   </ol>
   <div class="warn">ホーム画面のアイコンから開いたものと、Safari で開いたものは<strong>別の端末として扱われます</strong>。Safari で参加したあとにホーム画面に追加した場合は、アイコンから開いて招待コードで参加し直し、操作メンバーで以前の自分を選んでください。<strong>先にホーム画面に追加してから参加する</strong>のがおすすめです。</div>
   <div class="note">リマインダー通知とホーム画面のウィジェットは、Android アプリ版だけの機能です。</div>
@@ -345,7 +379,7 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
             <div class="fld"><label>アイコン</label>
               <div class="egrid"><div class="sel">👨</div><div>👩</div><div>👦</div><div>👧</div><div>👶</div><div>👴</div><div>👵</div><div>🧑</div></div>
             </div>
-            <div class="fld"><label>最初に入る家事</label><div class="inp filled">標準の7件</div></div>
+            <div class="fld"><label>最初に入る家事</label><div class="inp filled"><span class="paid-only">標準の7件</span><span class="family-only">おすすめの15件</span></div></div>
             <div class="pbtn">この内容でつくる</div>
             <div class="gbtn">戻る</div>
           </div>
@@ -361,9 +395,10 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
     <tr><td>世帯の名前</td><td>「山田家」など。画面の上部に表示されます。あとから変えられます。</td></tr>
     <tr><td>あなたの名前</td><td>家事をこなす人としての表示名です。「パパ」「ママ」など呼び名でかまいません。</td></tr>
     <tr><td>アイコン</td><td>一覧で自分を見分けるための絵文字です。</td></tr>
-    <tr><td>最初に入る家事</td><td>トイレ掃除・リビング床拭き掃除・皿洗い・洗面台掃除・燃えるゴミ・燃えないゴミ・買い出しの7件です。名前・周期・クレジットはあとから変えられます。</td></tr>
+    <tr><td>最初に入る家事</td><td>トイレ掃除・リビング床拭き掃除・皿洗い・洗面台掃除・燃えるゴミ・燃えないゴミ・買い出しの7件です<span class="family-only">（家族用の版では、風呂掃除・洗濯なども含めた15件）</span>。名前・周期・クレジットはあとから変えられます。</td></tr>
   </table>
 
+  <div class="note">世帯をつくった直後は、<strong>すべての家事が「要実施」</strong>から始まります。済んでいる家事は「完了」を押せば、その時点から周期のカウントが始まります。</div>
   <div class="note">世帯をつくった人が<strong>「支払い担当」</strong>になります。お小遣いの申請が来たときに「払った！」ボタンが出るのはこの人だけです。あとから変更したい場合は、新しく世帯をつくり直してください。</div>
 </section>
 
@@ -673,7 +708,8 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
 <section id="s6">
   <h2><span class="n">6</span>管理・設定</h2>
   <p>家事の追加・編集、メンバーの追加、招待コードの確認はすべてこのタブで行います。</p>
-  <div class="note"><strong>無料プランと拡張プラン</strong><br>
+  <div class="note family-only"><strong>家事の数</strong><br>家族用の版では、家事を自由に追加できます（合計30件まで）。「おすすめの家事をまとめて追加」で、標準の15件のうちまだ無いものを一度に足せます。</div>
+  <div class="note paid-only"><strong>無料プランと拡張プラン</strong><br>
     無料プランは家事7件までで、家事の追加はできません（名前・周期・クレジットの変更と削除はできます）。<br>
     <strong>拡張プラン</strong>（有料・1回だけのお支払い）にすると、家事リストが15件になり、自分で家事を追加できます（合計30件まで）。購入は Android アプリの「管理・設定」→「家事の管理」からできます。ご家族のどなたかが購入すれば、iPhone やブラウザの方も含めて世帯の全員が使えます。</div>
 
@@ -753,6 +789,9 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
 <section id="s8">
   <h2><span class="n">8</span>よくある質問</h2>
 
+  <div class="faq"><div class="q">iPhone のアプリはありますか</div>
+    <div class="a">App Store のアプリはありません。Safari で <strong class="site-url">https://homedolist.netlify.app/</strong> を開き、ホーム画面に追加して使ってください（<a href="#s0">0章</a>）。Android の家族と同じ世帯で使えます。</div></div>
+
   <div class="faq"><div class="q">完了ボタンが押せません</div>
     <div class="a">その家事がまだ「ピカピカ」（周期の途中）だと押せません。表示されている「あと○時間」が経つと押せるようになります。また、操作メンバーが選ばれていないときも押せません。</div></div>
 
@@ -775,7 +814,43 @@ footer{text-align:center;font-size:12px;color:var(--grey);padding:22px 0;font-we
     <div class="a">その人の保有クレジットも一緒に消えます。がんばり履歴の記録は残ります。自分自身は削除できません。</div></div>
 </section>
 
+<!-- ============ 9 ============ -->
+<section id="s9">
+  <h2><span class="n">9</span>お問い合わせ</h2>
+  <p>使い方のご質問・不具合のご連絡・データ削除のご依頼は、次のどちらかからお送りください。</p>
+  <div class="contact">
+    <a href="https://lin.ee/X5Gpndw" target="_blank" rel="noopener"><span class="ic">💬</span>
+      <span>LINE で問い合わせる<small>友だち追加して、トークでお送りください</small></span></a>
+    <a href="mailto:koehome.01@gmail.com?subject=HomeQuest%20%E3%81%AE%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B"><span class="ic">✉️</span>
+      <span>メールで問い合わせる<small>koehome.01@gmail.com</small></span></a>
+  </div>
+  <div class="note">お問い合わせの際は、<strong>お使いの端末（iPhone / Android）</strong>と<strong>どの画面で何が起きたか</strong>を書いていただけると、早くご案内できます。データ削除のご依頼は、<a href="https://homedolist.netlify.app/delete-account.html">データの削除</a>のページの手順でお送りください。</div>
+</section>
+
 <footer>HomeQuest 使い方ガイド</footer>
+<script>
+(function(){
+  var URL_ = location.hostname === "chochopolice.github.io"
+    ? "https://chochopolice.github.io/homedo/housework.html" : "https://homedolist.netlify.app/";
+  Array.prototype.forEach.call(document.querySelectorAll(".site-url"), function(e){ e.textContent = URL_; });
+  var msg = "HomeQuest（家族の家事とお小遣い）\niPhoneの方は Safari で開いて「ホーム画面に追加」してください。\n" + URL_;
+  var line = document.getElementById("btnLineUrl");
+  if (line) line.href = "https://line.me/R/share?text=" + encodeURIComponent(msg);
+  var btn = document.getElementById("btnCopyUrl");
+  if (!btn) return;
+  function done(){ btn.textContent = "コピーしました"; setTimeout(function(){ btn.textContent = "アドレスをコピー"; }, 1800); }
+  function fallback(){
+    var t = document.createElement("textarea"); t.value = URL_; t.setAttribute("readonly", "");
+    t.style.position = "fixed"; t.style.opacity = "0"; document.body.appendChild(t); t.select();
+    try { document.execCommand("copy"); done(); } catch(e){} document.body.removeChild(t);
+  }
+  btn.addEventListener("click", function(){
+    try { if (window.HomeQuestApp && window.HomeQuestApp.copy){ window.HomeQuestApp.copy(URL_); done(); return; } } catch(e){}
+    if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(URL_).then(done, fallback); }
+    else fallback();
+  });
+})();
+</script>
 </div>
 </body>
 </html>
